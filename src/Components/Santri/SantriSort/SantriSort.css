@@ -1,0 +1,57 @@
+.santri-sort {
+  width: 100%;
+  max-width: 250px;
+}
+
+.sort-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sort-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 14px;
+  color: var(--text-light);
+  z-index: 1;
+}
+
+.sort-select {
+  width: 100%;
+  padding: 12px 40px 12px 40px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(8, 51, 88, 0.1);
+}
+
+.sort-arrow {
+  position: absolute;
+  right: 12px;
+  font-size: 10px;
+  color: var(--text-light);
+  pointer-events: none;
+}
+
+.sort-select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 8px;
+}
+
+@media (max-width: 768px) {
+  .santri-sort {
+    max-width: 100%;
+  }
+}

@@ -1,0 +1,250 @@
+.dashboard-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: #eef3f8;
+  font-family: "Inter", sans-serif;
+}
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  background: #f4f7fb;
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+  width: 100%;
+  position: relative;
+  padding-top: 60px; 
+}
+
+.sidebar {
+  width: 230px;
+  background: #083358;
+  color: white;
+  padding: 25px 20px;
+  height: calc(100vh - 60px);
+  position: fixed;
+  top: 60px;
+  left: 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  z-index: 998; 
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar h3 {
+  font-size: 22px;
+  margin-bottom: 20px;
+  font-weight: 700;
+  color: white;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-link {
+  text-decoration: none;
+  color: white;
+  display: block;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-link li {
+  padding: 14px 16px;
+  transition: 0.25s ease;
+  list-style: none;
+  font-size: 15px;
+}
+
+.sidebar-link:hover {
+  background: #0a4475;
+  transform: translateX(5px);
+}
+
+.sidebar-link.active {
+  background: #0a4d8a;
+  font-weight: 700;
+}
+
+.dashboard-content {
+  margin-left: 230px;
+  padding: 25px;
+  width: calc(100% - 230px);
+  min-height: calc(100vh - 60px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-toggle {
+  position: fixed;
+  top: 70px; 
+  left: 20px;
+  background: #083358;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+  background: #0a4d8a;
+  transform: scale(1.05);
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 997;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding-top: 50px; 
+  }
+  
+  .sidebar {
+    width: 280px;
+    transform: translateX(-100%);
+    height: calc(100vh - 50px);
+    top: 50px;
+    z-index: 999; 
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar-overlay {
+    top: 50px;
+    z-index: 998; 
+  }
+  
+  .dashboard-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 15px;
+    min-height: calc(100vh - 50px);
+  }
+  
+  .dashboard-content.sidebar-open {
+    filter: brightness(0.95);
+  }
+  
+  .sidebar-toggle {
+    top: 60px; 
+    left: 15px;
+  }
+  
+  .sidebar h3 {
+    font-size: 20px;
+    margin-top: 10px;
+  }
+  
+  .sidebar-link li {
+    padding: 16px 20px;
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+  }
+  
+  .dashboard-content {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+    padding: 20px;
+  }
+  
+  .sidebar-link li {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.35;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #0a4d8a;
+  border-radius: 10px;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-close-mobile {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+@media (max-width: 768px) {
+  .sidebar-close-mobile {
+    display: block;
+  }
+  
+  .sidebar-close-mobile:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
