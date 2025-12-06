@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import DashboardLayout from "../Dashboard/DashboardLayout";
-import "./pengaturan.css";
+import "./Pengaturan.css";
 import { useSettings } from "../../context/settingsContext";
 
 export default function Pengaturan() {
