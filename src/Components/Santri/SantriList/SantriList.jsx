@@ -1,8 +1,20 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "../../../supabaseClient";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
-import { FiUsers, FiSearch, FiFilter, FiEdit2, FiTrash2, FiEye, FiFileText, FiDownload, FiX, FiCheck, FiUserPlus } from "react-icons/fi";
+import autoTable from "jspdf-autotable"; // Import yang lebih baik
+import {
+  FiUsers,
+  FiSearch,
+  FiFilter,
+  FiEdit2,
+  FiTrash2,
+  FiEye,
+  FiFileText,
+  FiDownload,
+  FiX,
+  FiCheck,
+  FiUserPlus,
+} from "react-icons/fi";
 import { MdDateRange } from "react-icons/md";
 
 import AddSantri from "../AddSantri/AddSantri";
@@ -13,6 +25,13 @@ import SantriDetail from "../SantriDetail/SantriDetail";
 
 import DashboardLayout from "../../Dashboard/DashboardLayout";
 import { useSettings } from "../../../context/settingsContext";
+
+// Tambahkan font untuk mendukung karakter Indonesia
+const addFontToPDF = (doc) => {
+  // Font default jsPDF sudah mendukung basic characters
+  // Untuk font yang lebih baik, Anda bisa menambahkan font custom
+  return doc;
+};
 
 export default function SantriList() {
   const { settings } = useSettings();
@@ -114,63 +133,60 @@ export default function SantriList() {
   const exportToPDF = async () => {
     setExporting(true);
     try {
-      const { data, error } = await supabase
-        .from("santri")
-        .select("nama, kelas, created_at")
-        .order("nama", { ascending: true });
+      const dataToExport =
+        santri.length > 0 ? santri : await loadSantriForExport();
 
-      if (error) throw error;
+      if (!dataToExport || dataToExport.length === 0) {
+        alert("Tidak ada data santri untuk diexport.");
+        setExporting(false);
+        return;
+      }
 
-      const doc = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
+      const doc = new jsPDF();
 
       doc.setFontSize(16);
-      doc.setTextColor(8, 51, 88);
-      doc.text("DATA SANTRI TAHFIDZ", 105, 15, { align: "center" });
+      doc.text("DATA SANTRI TAHFIDZ", 105, 20, { align: "center" });
 
       doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Dicetak: ${new Date().toLocaleDateString("id-ID")}`, 105, 22, {
+      doc.text(`Dicetak: ${new Date().toLocaleDateString("id-ID")}`, 105, 30, {
         align: "center",
       });
-      doc.text(`Total: ${data.length} santri`, 105, 27, { align: "center" });
+      doc.text(`Total: ${dataToExport.length} santri`, 105, 35, {
+        align: "center",
+      });
 
-      const tableData = data.map((santri, index) => [
+      const headers = [["No", "Nama Santri", "Kelas", "Bergabung"]];
+
+      const tableData = dataToExport.map((santri, index) => [
         index + 1,
-        santri.nama,
+        santri.nama || "-",
         santri.kelas || "-",
-        new Date(santri.created_at).toLocaleDateString("id-ID"),
+        santri.created_at
+          ? new Date(santri.created_at).toLocaleDateString("id-ID")
+          : "-",
       ]);
 
-      doc.autoTable({
-        startY: 35,
-        head: [["No", "Nama", "Kelas", "Tanggal Bergabung"]],
+      autoTable(doc, {
+        startY: 45,
+        head: headers,
         body: tableData,
+        theme: "striped",
         headStyles: {
           fillColor: [8, 51, 88],
           textColor: [255, 255, 255],
-          fontSize: 9,
-          fontStyle: "bold",
+          fontSize: 10,
         },
         bodyStyles: {
-          fontSize: 8,
-          textColor: [0, 0, 0],
+          fontSize: 9,
         },
         alternateRowStyles: {
           fillColor: [245, 245, 245],
         },
-        margin: { top: 35 },
-        styles: {
-          cellPadding: 2,
-          overflow: "linebreak",
-        },
+        margin: { top: 45 },
         columnStyles: {
           0: { cellWidth: 15 },
           1: { cellWidth: 70 },
-          2: { cellWidth: 40 },
+          2: { cellWidth: 30 },
           3: { cellWidth: 40 },
         },
       });
@@ -178,28 +194,96 @@ export default function SantriList() {
       const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
-        doc.setFontSize(9);
+        doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
-        doc.text(`Halaman ${i} dari ${pageCount}`, 105, 285, {
-          align: "center",
-        });
         doc.text(
-          `Sistem Manajemen Tahfidz © ${new Date().getFullYear()}`,
-          105,
-          290,
+          `Halaman ${i} dari ${pageCount}`,
+          doc.internal.pageSize.width / 2,
+          doc.internal.pageSize.height - 10,
           { align: "center" }
         );
       }
 
-      const fileName = `Data-Santri-${
-        new Date().toISOString().split("T")[0]
-      }.pdf`;
-      doc.save(fileName);
+      doc.save(`data-santri-${new Date().getTime()}.pdf`);
+      alert(`✅ Data ${dataToExport.length} santri berhasil diexport ke PDF!`);
+    } catch (error) {
+      console.error("Export PDF error:", error);
+      alert("❌ Gagal export PDF. Silakan coba lagi.");
+    } finally {
+      setExporting(false);
+    }
+  };
 
-      alert(`Data ${data.length} santri berhasil diexport ke PDF!`);
-    } catch (err) {
-      console.error("Error exporting to PDF:", err);
-      alert("Gagal mengexport data ke PDF.");
+  const loadSantriForExport = async () => {
+    try {
+      const { data } = await supabase
+        .from("santri")
+        .select("nama, kelas, created_at")
+        .order("nama", { ascending: true });
+      return data || [];
+    } catch (error) {
+      console.error("Error loading data for export:", error);
+      return [];
+    }
+  };
+
+  const exportToPDFSimple = () => {
+    setExporting(true);
+    try {
+      // Gunakan data yang sudah ada di state untuk menghindari API call
+      const dataToExport = filtered.length > 0 ? filtered : santri;
+
+      if (!dataToExport || dataToExport.length === 0) {
+        alert("Tidak ada data santri untuk diexport.");
+        setExporting(false);
+        return;
+      }
+
+      const doc = new jsPDF();
+
+      // Judul
+      doc.setFontSize(16);
+      doc.text("DATA SANTRI TAHFIDZ", 105, 20, { align: "center" });
+
+      // Tanggal
+      doc.setFontSize(10);
+      doc.text(`Dicetak: ${new Date().toLocaleDateString("id-ID")}`, 105, 30, {
+        align: "center",
+      });
+      doc.text(`Total: ${dataToExport.length} santri`, 105, 35, {
+        align: "center",
+      });
+
+      // Header tabel
+      const headers = [["No", "Nama", "Kelas", "Bergabung"]];
+
+      // Data tabel
+      const tableData = dataToExport.map((santri, index) => [
+        index + 1,
+        santri.nama,
+        santri.kelas || "-",
+        new Date(santri.created_at).toLocaleDateString("id-ID"),
+      ]);
+
+      // Buat tabel
+      doc.autoTable({
+        startY: 45,
+        head: headers,
+        body: tableData,
+        theme: "grid",
+        headStyles: {
+          fillColor: [8, 51, 88],
+          textColor: [255, 255, 255],
+        },
+        margin: { top: 45 },
+      });
+
+      // Simpan
+      doc.save(`santri-${new Date().getTime()}.pdf`);
+      alert(`Data ${dataToExport.length} santri berhasil diexport!`);
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Gagal export PDF. Silakan coba lagi.");
     } finally {
       setExporting(false);
     }
@@ -207,17 +291,14 @@ export default function SantriList() {
 
   const exportToJSON = async () => {
     try {
-      const { data, error } = await supabase
-        .from("santri")
-        .select("nama, kelas, created_at")
-        .order("nama", { ascending: true });
-
-      if (error) throw error;
+      // Gunakan data yang sudah ada untuk menghindari API call berlebihan
+      const dataToExport =
+        santri.length > 0 ? santri : await fetchDataForExport();
 
       const exportData = {
-        santri: data,
+        santri: dataToExport,
         exportedAt: new Date().toISOString(),
-        total: data.length,
+        total: dataToExport.length,
         settings: {
           perPage,
           sort,
@@ -236,12 +317,27 @@ export default function SantriList() {
       const link = document.createElement("a");
       link.setAttribute("href", dataUri);
       link.setAttribute("download", exportFileName);
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
 
-      alert(`Data ${data.length} santri berhasil diexport ke JSON!`);
+      alert(`Data ${dataToExport.length} santri berhasil diexport ke JSON!`);
     } catch (err) {
       console.error("Error exporting santri:", err);
       alert("Gagal mengexport data santri.");
+    }
+  };
+
+  const fetchDataForExport = async () => {
+    try {
+      const { data } = await supabase
+        .from("santri")
+        .select("nama, kelas, created_at")
+        .order("nama", { ascending: true });
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching export data:", error);
+      return [];
     }
   };
 
@@ -260,28 +356,15 @@ export default function SantriList() {
     });
   };
 
-  // Color scheme - Biru Tua (#083358)
-  const colors = {
-    primary: {
-      50: "#eff6ff",
-      100: "#dbeafe",
-      200: "#bfdbfe",
-      300: "#93c5fd",
-      400: "#60a5fa",
-      500: "#3b82f6",
-      600: "#2563eb",
-      700: "#1d4ed8",
-      800: "#083358", // Biru Tua
-      900: "#1e3a8a",
-    },
-  };
-
   const isDark = settings.display.theme === "dark";
 
   return (
     <DashboardLayout>
-      <div className={`min-h-screen ${isDark ? "bg-gray-900" : "bg-gray-50"} p-4 md:p-6 font-sans transition-colors duration-300`}>
-        
+      <div
+        className={`min-h-screen ${
+          isDark ? "bg-gray-900" : "bg-gray-50"
+        } p-4 md:p-6 font-sans transition-colors duration-300`}
+      >
         {/* Modern Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -342,7 +425,7 @@ export default function SantriList() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
@@ -378,7 +461,6 @@ export default function SantriList() {
 
         {/* Main Content Card */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden mb-8">
-          
           {/* Toolbar */}
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -390,7 +472,7 @@ export default function SantriList() {
                   theme={settings.display.theme}
                 />
               </div>
-              
+
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <SantriSearch
                   search={search}
@@ -456,7 +538,9 @@ export default function SantriList() {
                       Tidak ada santri ditemukan
                     </p>
                     <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                      {search ? "Coba ubah kata kunci pencarian" : "Tambahkan santri baru untuk memulai"}
+                      {search
+                        ? "Coba ubah kata kunci pencarian"
+                        : "Tambahkan santri baru untuk memulai"}
                     </p>
                     {search && (
                       <button
@@ -491,15 +575,15 @@ export default function SantriList() {
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {paginated.map((s, index) => (
-                          <tr 
-                            key={s.id} 
+                          <tr
+                            key={s.id}
                             className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                           >
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                               {(currentPage - 1) * perPage + index + 1}
                             </td>
                             <td className="px-6 py-4">
-                              <div 
+                              <div
                                 className="flex items-center gap-3 cursor-pointer group"
                                 onClick={() => setSelectedSantri(s)}
                               >
@@ -517,11 +601,13 @@ export default function SantriList() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                                s.kelas 
-                                  ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
-                                  : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
-                              }`}>
+                              <span
+                                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                                  s.kelas
+                                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
+                                    : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
+                                }`}
+                              >
                                 {s.kelas || "-"}
                               </span>
                             </td>
@@ -625,7 +711,7 @@ export default function SantriList() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="p-6">
                 <div className="space-y-4">
                   <div>
@@ -644,7 +730,7 @@ export default function SantriList() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-b-2xl">
                 <div className="flex justify-end gap-3">
                   <button
@@ -693,7 +779,7 @@ export default function SantriList() {
                   </button>
                 </div>
               </div>
-              
+
               <div className="p-6">
                 <p className="text-gray-700 dark:text-gray-300">
                   Apakah Anda yakin ingin menghapus santri{" "}
@@ -703,7 +789,7 @@ export default function SantriList() {
                   ? Tindakan ini tidak dapat dibatalkan.
                 </p>
               </div>
-              
+
               <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-b-2xl">
                 <div className="flex justify-end gap-3">
                   <button
@@ -713,7 +799,9 @@ export default function SantriList() {
                     Batal
                   </button>
                   <button
-                    onClick={() => handleDelete(showDeleteConfirm.id, showDeleteConfirm.nama)}
+                    onClick={() =>
+                      handleDelete(showDeleteConfirm.id, showDeleteConfirm.nama)
+                    }
                     disabled={isDeleting === showDeleteConfirm.id}
                     className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >

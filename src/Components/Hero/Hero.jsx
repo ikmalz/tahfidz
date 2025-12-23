@@ -1,8 +1,10 @@
 import React from "react";
 import "./Hero.css";
 import dark_arrow from "../../assets/dark-arrow.png";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
+  const navigate = useNavigate();
   return (
     <div className="hero container">
       <div className="hero-text">
@@ -13,8 +15,8 @@ const Hero = () => {
           Al-Qur&rsquo;an dengan cara yang ringan, nyaman, dan pastinya bikin
           semangat setiap hari.
         </p>
-        <button className="btn">
-          Mulai Sekarang <img src={dark_arrow} alt="" />
+        <button className="btn" onClick={() => navigate("/tahfidz")}>
+          Mulai Sekarang
         </button>
       </div>
     </div>

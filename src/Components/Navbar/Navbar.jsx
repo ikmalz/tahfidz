@@ -11,21 +11,21 @@ const Navbar = () => {
     const handleScroll = () => {
       window.scrollY > 50 ? setSticky(true) : setSticky(false);
     };
-    
+
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
       if (window.innerWidth > 768) {
         setShowMobileMenu(false);
       }
     };
-    
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener("scroll", handleScroll);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
+    window.addEventListener("resize", checkMobile);
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", checkMobile);
     };
   }, []);
 
@@ -38,10 +38,10 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`nav-container ${sticky ? 'dark-nav' : ''}`}>
+    <nav className={`nav-container ${sticky ? "dark-nav" : ""}`}>
       <div className="nav-content">
         <img src={logo} alt="Logo" className="logo" />
-        
+
         <ul className="desktop-menu">
           <li>Beranda</li>
           <li>Program</li>
@@ -49,13 +49,17 @@ const Navbar = () => {
           <li>Galeri</li>
           <li>Testimoni</li>
           <li>
-            <button className="btn">Hubungi Kami</button>
+            <a href="/hubungi-kami" className="btn">
+              Hubungi Kami
+            </a>
           </li>
         </ul>
-        
+
         {isMobile && (
-          <button 
-            className={`mobile-menu-icon ${showMobileMenu ? 'close' : 'hamburger'}`}
+          <button
+            className={`mobile-menu-icon ${
+              showMobileMenu ? "close" : "hamburger"
+            }`}
             onClick={toggleMobileMenu}
             aria-label={showMobileMenu ? "Close menu" : "Open menu"}
             aria-expanded={showMobileMenu}
@@ -76,15 +80,15 @@ const Navbar = () => {
           </button>
         )}
       </div>
-      
+
       {isMobile && showMobileMenu && (
-        <div 
+        <div
           className="mobile-menu-overlay"
           onClick={closeMobileMenu}
           aria-hidden="true"
         />
       )}
-      
+
       {isMobile && showMobileMenu && (
         <div className="mobile-menu-dropdown">
           <ul>
@@ -104,13 +108,9 @@ const Navbar = () => {
               <span>Testimoni</span>
             </li>
             <li>
-              <button 
-                className="btn" 
-                onClick={closeMobileMenu}
-                aria-label="Hubungi Kami"
-              >
+              <a href="/hubungi-kami" onClick={closeMobileMenu} className="btn">
                 Hubungi Kami
-              </button>
+              </a>
             </li>
           </ul>
         </div>

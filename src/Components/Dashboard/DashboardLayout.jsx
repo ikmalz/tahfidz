@@ -10,9 +10,7 @@ export default function DashboardLayout({ children }) {
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
-      
-      // Di desktop, sidebar selalu terbuka
-      // Di mobile, sidebar tertutup default
+
       if (!mobile) {
         setIsSidebarOpen(true);
       } else {

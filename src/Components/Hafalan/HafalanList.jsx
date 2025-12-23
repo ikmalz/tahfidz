@@ -14,7 +14,7 @@ export default function HafalanList() {
   const [ayatAwal, setAyatAwal] = useState("");
   const [ayatAkhir, setAyatAkhir] = useState("");
   const [status, setStatus] = useState("setor");
-  
+
   const [filterTanggal, setFilterTanggal] = useState("");
   const [filterSantri, setFilterSantri] = useState("");
   const [filterSurah, setFilterSurah] = useState("");
@@ -23,11 +23,11 @@ export default function HafalanList() {
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = settings?.tahfidz?.itemsPerPage || 10;
   const [totalPages, setTotalPages] = useState(1);
-  
+
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // State untuk edit modal
   const [editModal, setEditModal] = useState(null);
   const [editSurah, setEditSurah] = useState("");
@@ -35,7 +35,7 @@ export default function HafalanList() {
   const [editAyatAkhir, setEditAyatAkhir] = useState("");
   const [editStatus, setEditStatus] = useState("");
   const [editTanggal, setEditTanggal] = useState("");
-  
+
   // State untuk popup notification
   const [notification, setNotification] = useState(null);
 
@@ -59,15 +59,15 @@ export default function HafalanList() {
     loadSantri();
   }, []);
 
-  // Load data hafalan
   const loadHafalan = async () => {
     setLoadingData(true);
     setError(null);
-    
+
     try {
       let query = supabase
         .from("hafalan")
-        .select(`
+        .select(
+          `
           id,
           tanggal,
           surah,
@@ -76,32 +76,34 @@ export default function HafalanList() {
           status,
           created_at,
           santri:santri_id(id, nama, kelas)
-        `, { count: "exact" })
+        `,
+          { count: "exact" }
+        )
         .order("tanggal", { ascending: false });
 
       if (filterTanggal) {
         query = query.eq("tanggal", filterTanggal);
       }
-      
+
       if (filterSantri) {
         query = query.eq("santri_id", filterSantri);
       }
-      
+
       if (filterSurah) {
         query = query.ilike("surah", `%${filterSurah}%`);
       }
-      
+
       if (filterStatus) {
         query = query.eq("status", filterStatus);
       }
 
       const from = (currentPage - 1) * perPage;
       const to = from + perPage - 1;
-      
+
       const { data, count, error } = await query.range(from, to);
 
       if (error) throw error;
-      
+
       setHafalan(data || []);
       setTotalPages(Math.ceil((count || 0) / perPage));
     } catch (err) {
@@ -130,24 +132,27 @@ export default function HafalanList() {
       showNotification("Pilih santri terlebih dahulu!", "error");
       return;
     }
-    
+
     if (!surah || !surah.trim()) {
       showNotification("Masukkan nama surah!", "error");
       return;
     }
-    
+
     if (!ayatAwal || isNaN(ayatAwal) || parseInt(ayatAwal) <= 0) {
       showNotification("Ayat awal harus angka positif!", "error");
       return;
     }
-    
+
     if (!ayatAkhir || isNaN(ayatAkhir) || parseInt(ayatAkhir) <= 0) {
       showNotification("Ayat akhir harus angka positif!", "error");
       return;
     }
-    
+
     if (parseInt(ayatAwal) > parseInt(ayatAkhir)) {
-      showNotification("Ayat awal tidak boleh lebih besar dari ayat akhir!", "error");
+      showNotification(
+        "Ayat awal tidak boleh lebih besar dari ayat akhir!",
+        "error"
+      );
       return;
     }
 
@@ -166,16 +171,16 @@ export default function HafalanList() {
       ]);
 
       if (error) throw error;
-      
+
       showNotification("Hafalan berhasil ditambahkan!", "success");
-      
+
       // Reset form
       setSurah("");
       setAyatAwal("");
       setAyatAkhir("");
       setSelectedSantri("");
       setStatus("setor");
-      
+
       // Reload data
       loadHafalan();
     } catch (err) {
@@ -188,41 +193,48 @@ export default function HafalanList() {
 
   const handleUpdateHafalan = async () => {
     if (!editModal) return;
-    
+
     if (!editSurah || !editSurah.trim()) {
       showNotification("Masukkan nama surah!", "error");
       return;
     }
-    
+
     if (!editAyatAwal || isNaN(editAyatAwal) || parseInt(editAyatAwal) <= 0) {
       showNotification("Ayat awal harus angka positif!", "error");
       return;
     }
-    
-    if (!editAyatAkhir || isNaN(editAyatAkhir) || parseInt(editAyatAkhir) <= 0) {
+
+    if (
+      !editAyatAkhir ||
+      isNaN(editAyatAkhir) ||
+      parseInt(editAyatAkhir) <= 0
+    ) {
       showNotification("Ayat akhir harus angka positif!", "error");
       return;
     }
-    
+
     if (parseInt(editAyatAwal) > parseInt(editAyatAkhir)) {
-      showNotification("Ayat awal tidak boleh lebih besar dari ayat akhir!", "error");
+      showNotification(
+        "Ayat awal tidak boleh lebih besar dari ayat akhir!",
+        "error"
+      );
       return;
     }
 
     try {
       const { error } = await supabase
         .from("hafalan")
-        .update({ 
+        .update({
           surah: editSurah.trim(),
           ayat_awal: parseInt(editAyatAwal),
           ayat_akhir: parseInt(editAyatAkhir),
           status: editStatus,
-          tanggal: editTanggal
+          tanggal: editTanggal,
         })
         .eq("id", editModal.id);
 
       if (error) throw error;
-      
+
       setEditModal(null);
       loadHafalan();
       showNotification("Data hafalan berhasil diperbarui!", "success");
@@ -236,13 +248,10 @@ export default function HafalanList() {
     if (!window.confirm(`Hapus hafalan ${surah} milik ${santriName}?`)) return;
 
     try {
-      const { error } = await supabase
-        .from("hafalan")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("hafalan").delete().eq("id", id);
 
       if (error) throw error;
-      
+
       loadHafalan();
       showNotification("Hafalan berhasil dihapus!", "success");
     } catch (err) {
@@ -266,40 +275,69 @@ export default function HafalanList() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '-';
+    if (!dateString) return "-";
     const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
-      case 'setor': return 'var(--info-color)';
-      case 'hafal': return 'var(--success-color)';
-      case 'pending': return 'var(--warning-color)';
-      default: return 'var(--text-secondary)';
+    switch (status) {
+      case "setor":
+        return "bg-blue-500";
+      case "hafal":
+        return "bg-green-500";
+      case "pending":
+        return "bg-yellow-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case "setor":
+        return "Setor";
+      case "hafal":
+        return "Hafal";
+      case "pending":
+        return "Pending";
+      default:
+        return status;
     }
   };
 
   return (
     <DashboardLayout>
-      <div className={`hafalan-container theme-${settings.display.theme}`} data-theme={settings.display.theme}>
-        
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6 transition-colors duration-200">
         {/* Notification Popup */}
         {notification && (
-          <div className={`notification-popup ${notification.type}`}>
-            <div className="notification-content">
-              <span className="notification-icon">
-                {notification.type === 'success' ? '✅' : 
-                 notification.type === 'error' ? '❌' : 'ℹ️'}
+          <div
+            className={`fixed top-4 right-4 z-50 animate-slide-in-right ${
+              notification.type === "success"
+                ? "bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500"
+                : notification.type === "error"
+                ? "bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500"
+                : "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500"
+            } rounded-lg shadow-lg p-4 flex items-center justify-between gap-3 min-w-[300px] max-w-md border border-gray-200 dark:border-gray-700`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-lg">
+                {notification.type === "success"
+                  ? "✅"
+                  : notification.type === "error"
+                  ? "❌"
+                  : "ℹ️"}
               </span>
-              <span className="notification-message">{notification.message}</span>
+              <span className="text-sm text-gray-800 dark:text-gray-200">
+                {notification.message}
+              </span>
             </div>
-            <button 
-              className="notification-close"
+            <button
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               onClick={() => setNotification(null)}
             >
               ✕
@@ -309,86 +347,103 @@ export default function HafalanList() {
 
         {/* Edit Modal */}
         {editModal && (
-          <div className="edit-modal-overlay">
-            <div className="edit-modal">
-              <div className="edit-modal-header">
-                <h3>✏️ Edit Data Hafalan</h3>
-                <button 
-                  className="close-btn"
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-gray-700 animate-slide-up">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                  <span className="text-blue-500">✏️</span>
+                  Edit Data Hafalan
+                </h3>
+                <button
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                   onClick={() => setEditModal(null)}
                 >
                   ✕
                 </button>
               </div>
-              
-              <div className="edit-modal-body">
-                <div className="edit-form">
-                  <div className="edit-form-group">
-                    <label>Tanggal</label>
-                    <input
-                      type="date"
-                      className="edit-form-input"
-                      value={editTanggal}
-                      onChange={(e) => setEditTanggal(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="edit-form-group">
-                    <label>Surah</label>
-                    <input
-                      type="text"
-                      className="edit-form-input"
-                      value={editSurah}
-                      onChange={(e) => setEditSurah(e.target.value)}
-                      placeholder="Nama surah"
-                    />
-                  </div>
-                  
-                  <div className="edit-form-group">
-                    <label>Ayat Awal - Akhir</label>
-                    <div className="ayat-input-group">
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                    value={editTanggal}
+                    onChange={(e) => setEditTanggal(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Surah
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                    value={editSurah}
+                    onChange={(e) => setEditSurah(e.target.value)}
+                    placeholder="Nama surah"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Ayat Awal - Akhir
+                  </label>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1">
                       <input
                         type="number"
-                        className="edit-form-input ayat-input"
+                        className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors text-center"
                         value={editAyatAwal}
                         onChange={(e) => setEditAyatAwal(e.target.value)}
                         placeholder="Awal"
                       />
-                      <span className="ayat-separator">-</span>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <span className="text-gray-500 dark:text-gray-400 font-medium px-1">
+                        -
+                      </span>
+                    </div>
+                    <div className="flex-1">
                       <input
                         type="number"
-                        className="edit-form-input ayat-input"
+                        className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors text-center"
                         value={editAyatAkhir}
                         onChange={(e) => setEditAyatAkhir(e.target.value)}
                         placeholder="Akhir"
                       />
                     </div>
                   </div>
-                  
-                  <div className="edit-form-group">
-                    <label>Status</label>
-                    <select
-                      className="edit-form-select"
-                      value={editStatus}
-                      onChange={(e) => setEditStatus(e.target.value)}
-                    >
-                      <option value="setor">Setor</option>
-                      <option value="hafal">Hafal</option>
-                      <option value="pending">Pending</option>
-                    </select>
-                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Status
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value)}
+                  >
+                    <option value="setor">Setor</option>
+                    <option value="hafal">Hafal</option>
+                    <option value="pending">Pending</option>
+                  </select>
                 </div>
               </div>
-              
-              <div className="edit-modal-footer">
-                <button 
-                  className="btn-cancel"
+
+              <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   onClick={() => setEditModal(null)}
                 >
                   Batal
                 </button>
-                <button 
-                  className="btn-save"
+                <button
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                   onClick={handleUpdateHafalan}
                 >
                   Simpan Perubahan
@@ -398,27 +453,41 @@ export default function HafalanList() {
           </div>
         )}
 
-        {/* Header yang Lebih Baik */}
-        <div className="hafalan-header-section">
-          <div className="header-content">
-            <div className="header-icon">📖</div>
-            <div className="header-text">
-              <h1 className="hafalan-title">Data Hafalan Santri</h1>
-              <p className="hafalan-subtitle">Kelola dan pantau perkembangan hafalan santri</p>
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 md:p-8 mb-6 shadow-lg">
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm">
+              <span className="text-3xl">📖</span>
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                Data Hafalan Santri
+              </h1>
+              <p className="text-blue-100">
+                Kelola dan pantau perkembangan hafalan santri
+              </p>
             </div>
           </div>
         </div>
 
         {/* Form Tambah Hafalan */}
-        <div className="hafalan-form-container">
-          <div className="form-header">
-            <h3>➕ Tambah Hafalan Baru</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <span className="text-green-600 dark:text-green-400">➕</span>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+              Tambah Hafalan Baru
+            </h3>
           </div>
-          <div className="form-grid">
-            <div className="form-group">
-              <label>Kelas</label>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Kelas
+              </label>
               <select
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                 value={kelas}
                 onChange={(e) => {
                   setKelas(e.target.value);
@@ -433,10 +502,12 @@ export default function HafalanList() {
               </select>
             </div>
 
-            <div className="form-group">
-              <label>Santri</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Santri
+              </label>
               <select
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 value={selectedSantri}
                 onChange={(e) => setSelectedSantri(e.target.value)}
                 disabled={!kelas}
@@ -454,43 +525,52 @@ export default function HafalanList() {
               </select>
             </div>
 
-            <div className="form-group">
-              <label>Surah</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Surah
+              </label>
               <input
                 type="text"
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                 placeholder="Nama surah"
                 value={surah}
                 onChange={(e) => setSurah(e.target.value)}
               />
             </div>
 
-            <div className="form-group">
-              <label>Ayat Awal</label>
-              <input
-                type="number"
-                className="form-input"
-                placeholder="Ayat awal"
-                value={ayatAwal}
-                onChange={(e) => setAyatAwal(e.target.value)}
-              />
+            <div className="md:col-span-2 lg:col-span-1 grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Ayat Awal
+                </label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                  placeholder="Awal"
+                  value={ayatAwal}
+                  onChange={(e) => setAyatAwal(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Ayat Akhir
+                </label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                  placeholder="Akhir"
+                  value={ayatAkhir}
+                  onChange={(e) => setAyatAkhir(e.target.value)}
+                />
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>Ayat Akhir</label>
-              <input
-                type="number"
-                className="form-input"
-                placeholder="Ayat akhir"
-                value={ayatAkhir}
-                onChange={(e) => setAyatAkhir(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Status</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Status
+              </label>
               <select
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
@@ -500,52 +580,69 @@ export default function HafalanList() {
               </select>
             </div>
 
-            <div className="form-group form-submit">
-              <button 
-                className="btn-primary" 
-                onClick={handleAdd} 
+            <div className="md:col-span-2 lg:col-span-1 flex items-end">
+              <button
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleAdd}
                 disabled={loading}
               >
                 {loading ? (
                   <>
-                    <span className="spinner-small"></span>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     Menambahkan...
                   </>
-                ) : "Tambah Hafalan"}
+                ) : (
+                  <>
+                    <span>➕</span>
+                    Tambah Hafalan
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
 
         {/* Filter Section */}
-        <div className="hafalan-filters-container">
-          <div className="filters-header">
-            <h3>🔍 Filter Data</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <span className="text-blue-600 dark:text-blue-400">🔍</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                Filter Data
+              </h3>
+            </div>
+
             {(filterTanggal || filterSantri || filterSurah || filterStatus) && (
-              <button 
+              <button
                 onClick={handleResetFilters}
-                className="btn-secondary"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium"
               >
                 Reset Filter
               </button>
             )}
           </div>
-          
-          <div className="filters-grid">
-            <div className="filter-group">
-              <label>Tanggal</label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Tanggal
+              </label>
               <input
                 type="date"
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                 value={filterTanggal}
                 onChange={(e) => setFilterTanggal(e.target.value)}
               />
             </div>
 
-            <div className="filter-group">
-              <label>Santri</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Santri
+              </label>
               <select
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                 value={filterSantri}
                 onChange={(e) => setFilterSantri(e.target.value)}
               >
@@ -558,21 +655,25 @@ export default function HafalanList() {
               </select>
             </div>
 
-            <div className="filter-group">
-              <label>Surah</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Surah
+              </label>
               <input
                 type="text"
-                className="form-input"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                 placeholder="Cari surah..."
                 value={filterSurah}
                 onChange={(e) => setFilterSurah(e.target.value)}
               />
             </div>
 
-            <div className="filter-group">
-              <label>Status</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Status
+              </label>
               <select
-                className="form-select"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
               >
@@ -586,99 +687,133 @@ export default function HafalanList() {
         </div>
 
         {/* Hafalan List */}
-        <div className="hafalan-content">
-          <div className="hafalan-list-header">
-            <div className="list-header-left">
-              <span className="list-title">Daftar Hafalan</span>
-              <span className="list-count">({hafalan.length} data ditemukan)</span>
-            </div>
-            <div className="list-header-right">
-              <span className="pagination-info">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {/* List Header */}
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                  Daftar Hafalan
+                </span>
+                <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs font-medium">
+                  {hafalan.length} data ditemukan
+                </span>
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 Hal {currentPage} dari {totalPages}
-              </span>
+              </div>
             </div>
           </div>
 
+          {/* Loading State */}
           {loadingData ? (
-            <div className="loading-container">
-              <div className="spinner"></div>
-              <p>Memuat data hafalan...</p>
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">
+                Memuat data hafalan...
+              </p>
             </div>
           ) : error ? (
-            <div className="error-container">
-              <div className="error-icon">⚠️</div>
-              <p className="error-message">{error}</p>
-              <button onClick={loadHafalan} className="btn-retry">
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+                <span className="text-2xl text-red-600 dark:text-red-400">
+                  ⚠️
+                </span>
+              </div>
+              <p className="text-gray-700 dark:text-gray-300 text-center mb-4">
+                {error}
+              </p>
+              <button
+                onClick={loadHafalan}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
                 Coba Lagi
               </button>
             </div>
           ) : hafalan.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">📭</div>
-              <p className="empty-text">Tidak ada data hafalan ditemukan</p>
-              {(filterTanggal || filterSantri || filterSurah || filterStatus) && (
-                <button 
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-4">
+                <span className="text-2xl text-gray-500 dark:text-gray-400">
+                  📭
+                </span>
+              </div>
+              <p className="text-gray-700 dark:text-gray-300 text-center mb-4">
+                Tidak ada data hafalan ditemukan
+              </p>
+              {(filterTanggal ||
+                filterSantri ||
+                filterSurah ||
+                filterStatus) && (
+                <button
                   onClick={handleResetFilters}
-                  className="btn-clear-search"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                 >
                   Tampilkan Semua Data
                 </button>
               )}
             </div>
           ) : (
-            <div className="hafalan-table-container">
-              <div className="hafalan-table">
+            <div className="overflow-x-auto">
+              <div className="min-w-full">
                 {/* Table Header */}
-                <div className="table-header">
-                  <div className="header-cell">No</div>
-                  <div className="header-cell">Tanggal</div>
-                  <div className="header-cell">Santri</div>
-                  <div className="header-cell">Surah</div>
-                  <div className="header-cell">Ayat</div>
-                  <div className="header-cell">Status</div>
-                  <div className="header-cell">Aksi</div>
+                <div className="grid grid-cols-12 bg-gray-50 dark:bg-gray-900/50 text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                  <div className="col-span-1 px-6 py-3 text-center">No</div>
+                  <div className="col-span-2 px-6 py-3">Tanggal</div>
+                  <div className="col-span-3 px-6 py-3">Santri</div>
+                  <div className="col-span-2 px-6 py-3">Surah</div>
+                  <div className="col-span-1 px-6 py-3 text-center">Ayat</div>
+                  <div className="col-span-2 px-6 py-3 text-center">Status</div>
+                  <div className="col-span-1 px-6 py-3 text-center">Aksi</div>
                 </div>
-                
-                {/* Table Rows */}
-                <div className="table-body">
+
+                {/* Table Body */}
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
                   {hafalan.map((h, index) => (
-                    <div key={h.id} className="table-row">
-                      <div className="table-cell cell-number">
+                    <div
+                      key={h.id}
+                      className="grid grid-cols-12 items-center hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors"
+                    >
+                      <div className="col-span-1 px-6 py-4 text-center text-sm text-gray-600 dark:text-gray-400 font-medium">
                         {(currentPage - 1) * perPage + index + 1}
                       </div>
-                      
-                      <div className="table-cell cell-date">
+
+                      <div className="col-span-2 px-6 py-4 text-sm text-gray-800 dark:text-gray-300">
                         {formatDate(h.tanggal)}
                       </div>
-                      
-                      <div className="table-cell cell-santri">
-                        <div className="santri-info">
-                          <div className="santri-name">{h.santri?.nama}</div>
-                          <div className="santri-kelas">{h.santri?.kelas}</div>
+
+                      <div className="col-span-3 px-6 py-4">
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {h.santri?.nama}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {h.santri?.kelas}
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="table-cell cell-surah">
+
+                      <div className="col-span-2 px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                         {h.surah}
                       </div>
-                      
-                      <div className="table-cell cell-ayat">
+
+                      <div className="col-span-1 px-6 py-4 text-center text-sm text-gray-800 dark:text-gray-300">
                         {`${h.ayat_awal}-${h.ayat_akhir}`}
                       </div>
-                      
-                      <div className="table-cell cell-status">
-                        <span 
-                          className="status-badge" 
-                          style={{ backgroundColor: getStatusColor(h.status) }}
+
+                      <div className="col-span-2 px-6 py-4 text-center">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(
+                            h.status
+                          )}`}
                         >
-                          {h.status}
+                          {getStatusText(h.status)}
                         </span>
                       </div>
-                      
-                      <div className="table-cell cell-actions">
-                        <div className="action-buttons">
+
+                      <div className="col-span-1 px-6 py-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
                           <button
-                            className="btn-action btn-edit"
+                            className="p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                             onClick={() => {
                               setEditModal(h);
                               setEditSurah(h.surah);
@@ -692,8 +827,10 @@ export default function HafalanList() {
                             ✏️
                           </button>
                           <button
-                            className="btn-action btn-delete"
-                            onClick={() => handleDelete(h.id, h.santri?.nama, h.surah)}
+                            className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                            onClick={() =>
+                              handleDelete(h.id, h.santri?.nama, h.surah)
+                            }
                             title="Hapus"
                           >
                             🗑️
@@ -709,54 +846,67 @@ export default function HafalanList() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="pagination-section">
-              <div className="pagination-controls">
-                <button
-                  className="btn-pagination"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  ← Prev
-                </button>
-                
-                <div className="page-numbers">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-                    
-                    return (
-                      <button
-                        key={pageNum}
-                        className={`btn-page ${currentPage === pageNum ? 'active' : ''}`}
-                        onClick={() => setCurrentPage(pageNum)}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Menampilkan <strong>{(currentPage - 1) * perPage + 1}</strong>{" "}
+                  -{" "}
+                  <strong>
+                    {Math.min(currentPage * perPage, hafalan.length)}
+                  </strong>{" "}
+                  dari <strong>{hafalan.length}</strong> hafalan
                 </div>
-                
-                <button
-                  className="btn-pagination"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next →
-                </button>
-              </div>
-              
-              <div className="pagination-summary">
-                <p>
-                  Menampilkan <strong>{(currentPage - 1) * perPage + 1}</strong> - <strong>{Math.min(currentPage * perPage, hafalan.length)}</strong> dari <strong>{hafalan.length}</strong> hafalan
-                </p>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                  >
+                    ← Prev
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                            currentPage === pageNum
+                              ? "bg-blue-600 text-white"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          }`}
+                          onClick={() => setCurrentPage(pageNum)}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                  >
+                    Next →
+                  </button>
+                </div>
               </div>
             </div>
           )}
