@@ -11,6 +11,8 @@ import GuruList from "./Components/Guru/GuruList";
 import DetailList from "./Components/Tahfidz/DetailList";
 import HubungiKami from "./pages/HubungiKami";
 import Campus from "./Components/Campus/Campus";
+import Testimonials from "./Components/Testimonials/Testimonials";
+import Footer from "./Components/Footer/Footer";
 
 const Hero = lazy(() => import("./Components/Hero/Hero"));
 const Programs = lazy(() => import("./Components/Programs/Programs"));
@@ -124,6 +126,9 @@ const App = () => {
                     <About />
                     <Title subTitle="Gallery" title="Campus Photos" />
                     <Campus/>
+                    <Title subTitle="TESTIMONIALS" title="What Student Days" />
+                    <Testimonials/>
+                    <Footer/>
                   </div>
                 </>
               }

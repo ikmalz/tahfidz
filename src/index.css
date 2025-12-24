@@ -267,3 +267,7 @@ body,
 .rounded-lg {
   border-radius: 12px;
 }
+.btn.dark-btn{
+  background: #212EA0;
+  color: #fff;
+}
