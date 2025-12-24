@@ -16,6 +16,7 @@ export default function MurajaahList() {
     ayat_akhir: "",
     kualitas: "",
     catatan: "",
+    guru_id: "",
   });
 
   const loadGuru = async () => {
@@ -42,7 +43,8 @@ export default function MurajaahList() {
         ayat_akhir,
         kualitas,
         catatan,
-        santri:santri_id (id, nama)
+        santri:santri_id (id, nama),
+        guru:guru_id (id, nama)
       `
       )
       .order("tanggal", { ascending: false });
@@ -74,6 +76,7 @@ export default function MurajaahList() {
       ayat_akhir: "",
       kualitas: "",
       catatan: "",
+      guru_id: "",
     });
     setIsEdit(false);
     setIsOpen(true);
@@ -89,6 +92,7 @@ export default function MurajaahList() {
       ayat_akhir: item.ayat_akhir,
       kualitas: item.kualitas,
       catatan: item.catatan,
+      guru_id: item.guru?.id || "",
     });
     setIsEdit(true);
     setIsOpen(true);
@@ -143,21 +147,36 @@ export default function MurajaahList() {
     loadData();
   };
 
+  // Tambahkan smooth scroll untuk modal
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      // Set tinggi z-index untuk memastikan modal di atas semua elemen
+      document.documentElement.style.setProperty('--modal-z-index', '9999');
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-6 relative z-0">
         <h2 className="text-2xl font-bold text-blue-900 mb-5">
           📖 Data Murajaah
         </h2>
 
         <button
           onClick={openAdd}
-          className="mb-4 px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition"
+          className="mb-4 px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 transition z-10"
         >
           + Tambah Murajaah
         </button>
 
-        <div className="overflow-x-auto shadow rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-x-auto shadow rounded-lg border border-gray-200 bg-white relative z-0">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-blue-900 text-white">
               <tr>
@@ -167,6 +186,7 @@ export default function MurajaahList() {
                 <th className="px-4 py-3">Ayat</th>
                 <th className="px-4 py-3">Kualitas</th>
                 <th className="px-4 py-3">Catatan</th>
+                <th className="px-4 py-3">Guru</th>
                 <th className="px-4 py-3">Aksi</th>
               </tr>
             </thead>
@@ -185,6 +205,7 @@ export default function MurajaahList() {
                   </td>
                   <td className="px-4 py-3">{item.kualitas || "-"}</td>
                   <td className="px-4 py-3">{item.catatan || "-"}</td>
+                  <td className="px-4 py-3">{item.guru?.nama || "-"}</td>
                   <td className="px-4 py-3 space-x-2">
                     <button
                       onClick={() => openEdit(item)}
@@ -205,7 +226,7 @@ export default function MurajaahList() {
               {data.length === 0 && (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="8"
                     className="text-center py-5 text-gray-500 italic"
                   >
                     Belum ada data murajaah.
@@ -219,150 +240,315 @@ export default function MurajaahList() {
 
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 
-                  flex items-center justify-center animate-fadeIn"
+          className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-[2px] z-[9999]
+                    flex items-center justify-center p-4 animate-fadeIn"
+          style={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+          }}
         >
-          <div className="bg-white w-[400px] p-6 rounded-xl shadow-xl animate-scaleIn">
-            <h3 className="text-lg font-semibold mb-4 text-blue-900">
-              {isEdit ? "Edit Murajaah" : "Tambah Murajaah"}
-            </h3>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* SANTRI */}
-              <div>
-                <label className="text-sm font-medium">Santri *</label>
-                <select
-                  value={form.santri_id}
-                  onChange={(e) =>
-                    setForm({ ...form, santri_id: e.target.value })
-                  }
-                  required
-                  className="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-200"
-                >
-                  <option value="">-- Pilih Santri --</option>
-                  {santriList.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.nama}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* TANGGAL */}
-              <div>
-                <label className="text-sm font-medium">Tanggal *</label>
-                <input
-                  type="date"
-                  value={form.tanggal}
-                  onChange={(e) =>
-                    setForm({ ...form, tanggal: e.target.value })
-                  }
-                  required
-                  className="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-200"
-                />
-              </div>
-
-              <label className="block text-sm mb-1">Guru</label>
-              <select
-                name="guru_id"
-                value={form.guru_id}
-                onChange={(e) => setForm({ ...form, guru_id: e.target.value })}
-                className="w-full p-2 mb-3 border rounded"
+          <div 
+            className="bg-white w-full max-w-4xl rounded-xl shadow-2xl animate-scaleIn relative z-[10000]"
+            style={{
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
+              maxHeight: '95vh',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header - Sticky */}
+            <div 
+              className="flex justify-between items-center border-b px-6 py-4 bg-white sticky top-0 z-10"
+              style={{
+                position: 'sticky',
+                top: 0,
+                backgroundColor: 'white',
+                borderBottom: '1px solid #e5e7eb',
+                zIndex: 10
+              }}
+            >
+              <h3 className="text-xl font-semibold text-blue-900">
+                {isEdit ? "✏️ Edit Murajaah" : "➕ Tambah Murajaah"}
+              </h3>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl p-1 bg-gray-100 hover:bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                aria-label="Tutup modal"
               >
-                <option value="">-- Pilih Guru --</option>
-                {guru?.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.nama}
-                  </option>
-                ))}
-              </select>
+                ✕
+              </button>
+            </div>
 
-              {/* SURAH */}
-              <div>
-                <label className="text-sm font-medium">Surah *</label>
-                <input
-                  type="text"
-                  value={form.surah}
-                  onChange={(e) => setForm({ ...form, surah: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-200"
-                />
-              </div>
+            {/* Modal Body dengan Scroll yang dikontrol */}
+            <div 
+              className="p-6 overflow-y-auto flex-grow"
+              style={{ maxHeight: 'calc(95vh - 80px)' }}
+            >
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* BARIS 1: Santri, Tanggal, Guru */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* SANTRI */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Santri <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={form.santri_id}
+                      onChange={(e) =>
+                        setForm({ ...form, santri_id: e.target.value })
+                      }
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                               transition duration-200 bg-white"
+                      style={{ zIndex: 20 }}
+                    >
+                      <option value="">-- Pilih Santri --</option>
+                      {santriList.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.nama}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* AYAT */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm font-medium">Ayat Awal</label>
-                  <input
-                    type="number"
-                    value={form.ayat_awal}
-                    onChange={(e) =>
-                      setForm({ ...form, ayat_awal: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-200"
-                  />
+                  {/* TANGGAL */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tanggal <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={form.tanggal}
+                      onChange={(e) =>
+                        setForm({ ...form, tanggal: e.target.value })
+                      }
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                               transition duration-200 bg-white"
+                    />
+                  </div>
+
+                  {/* GURU */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Guru <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={form.guru_id}
+                      onChange={(e) => setForm({ ...form, guru_id: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                               transition duration-200 bg-white"
+                    >
+                      <option value="">-- Pilih Guru --</option>
+                      {guru?.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.nama}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium">Ayat Akhir</label>
-                  <input
-                    type="number"
-                    value={form.ayat_akhir}
-                    onChange={(e) =>
-                      setForm({ ...form, ayat_akhir: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-200"
-                  />
+                {/* BARIS 2: Surah, Kualitas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* SURAH */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Surah <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={form.surah}
+                      onChange={(e) => setForm({ ...form, surah: e.target.value })}
+                      required
+                      placeholder="Contoh: Al-Fatihah, Al-Baqarah, dll"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                               transition duration-200 bg-white"
+                    />
+                  </div>
+
+                  {/* KUALITAS */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Kualitas
+                    </label>
+                    <select
+                      value={form.kualitas}
+                      onChange={(e) =>
+                        setForm({ ...form, kualitas: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                               transition duration-200 bg-white"
+                    >
+                      <option value="">-- Pilih Kualitas --</option>
+                      <option value="Sangat Baik">Sangat Baik</option>
+                      <option value="Baik">Baik</option>
+                      <option value="Cukup">Cukup</option>
+                      <option value="Kurang">Kurang</option>
+                      <option value="Perlu Perbaikan">Perlu Perbaikan</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              {/* KUALITAS */}
-              <div>
-                <label className="text-sm font-medium">Kualitas</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Baik / Kurang"
-                  value={form.kualitas}
-                  onChange={(e) =>
-                    setForm({ ...form, kualitas: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-md focus:ring focus:ring-blue-200"
-                />
-              </div>
+                {/* BARIS 3: Ayat Awal & Akhir */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ayat Awal
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        type="number"
+                        min="1"
+                        value={form.ayat_awal}
+                        onChange={(e) =>
+                          setForm({ ...form, ayat_awal: e.target.value })
+                        }
+                        placeholder="1"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                 transition duration-200 bg-white"
+                      />
+                      <span className="ml-3 text-gray-600">ayat</span>
+                    </div>
+                  </div>
 
-              {/* CATATAN */}
-              <div>
-                <label className="text-sm font-medium">Catatan</label>
-                <textarea
-                  value={form.catatan}
-                  onChange={(e) =>
-                    setForm({ ...form, catatan: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-md h-20 resize-none focus:ring focus:ring-blue-200"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ayat Akhir
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        type="number"
+                        min="1"
+                        value={form.ayat_akhir}
+                        onChange={(e) =>
+                          setForm({ ...form, ayat_akhir: e.target.value })
+                        }
+                        placeholder="7"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                 transition duration-200 bg-white"
+                      />
+                      <span className="ml-3 text-gray-600">ayat</span>
+                    </div>
+                  </div>
+                </div>
 
-              {/* BUTTON */}
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                {/* BARIS 4: Catatan (full width) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Catatan
+                  </label>
+                  <textarea
+                    value={form.catatan}
+                    onChange={(e) =>
+                      setForm({ ...form, catatan: e.target.value })
+                    }
+                    placeholder="Catatan tambahan mengenai hafalan..."
+                    rows="4"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                             transition duration-200 bg-white resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    * Isi catatan jika ada hal khusus yang perlu diperhatikan
+                  </p>
+                </div>
+
+                {/* BUTTON - Sticky Bottom */}
+                <div 
+                  className="flex gap-4 pt-4 border-t bg-white sticky bottom-0 pb-2"
+                  style={{
+                    position: 'sticky',
+                    bottom: 0,
+                    backgroundColor: 'white',
+                    paddingTop: '1rem',
+                    borderTop: '1px solid #e5e7eb'
+                  }}
                 >
-                  Batal
-                </button>
-
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800"
-                >
-                  Simpan
-                </button>
-              </div>
-            </form>
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg 
+                             hover:bg-gray-200 transition-colors font-medium
+                             border border-gray-300"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-6 py-3 bg-blue-900 text-white rounded-lg 
+                             hover:bg-blue-800 transition-colors font-medium
+                             shadow-md hover:shadow-lg"
+                  >
+                    {isEdit ? "Update Data Murajaah" : "Simpan Data Murajaah"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Tambahkan CSS untuk animasi dan layer ordering */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+          from { 
+            transform: scale(0.95) translateY(-20px); 
+            opacity: 0; 
+          }
+          to { 
+            transform: scale(1) translateY(0); 
+            opacity: 1; 
+          }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out;
+        }
+        
+        body.modal-open {
+          overflow: hidden;
+          position: fixed;
+          width: 100%;
+          height: 100%;
+        }
+        
+        .modal-backdrop {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          z-index: 9998 !important;
+        }
+        
+        /* Style untuk modal container */
+        .modal-container {
+          position: fixed !important;
+          z-index: 9999 !important;
+        }
+      `}</style>
     </DashboardLayout>
   );
 }

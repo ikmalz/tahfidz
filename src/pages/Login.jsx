@@ -271,7 +271,7 @@ export default function Login() {
                 <div className="flex items-center justify-between py-2 border-t border-white/10">
                   <span className="text-slate-300 text-sm">Password:</span>
                   <code className="text-sm font-mono text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded">
-                    admin123
+                    app
                   </code>
                 </div>
               </div>

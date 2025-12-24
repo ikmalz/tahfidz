@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./Components/Navbar/Navbar";
 import Pengaturan from "./Components/Pengaturan/Pengaturan";
 import { useSettings } from "./context/settingsContext";
-import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./Components/Auth/ProtectedRoute";
 import Login from "./Components/Auth/Login";
 import MurajaahList from "./Components/Murajaah/MurajaahList";
@@ -13,6 +12,7 @@ import HubungiKami from "./pages/HubungiKami";
 import Campus from "./Components/Campus/Campus";
 import Testimonials from "./Components/Testimonials/Testimonials";
 import Footer from "./Components/Footer/Footer";
+import { AuthProvider } from "./context/authContext";
 
 const Hero = lazy(() => import("./Components/Hero/Hero"));
 const Programs = lazy(() => import("./Components/Programs/Programs"));

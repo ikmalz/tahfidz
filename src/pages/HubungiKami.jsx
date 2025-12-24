@@ -4,7 +4,7 @@ import { MessageCircle } from "lucide-react";
 export default function HubungiKami() {
   const handleWhatsApp = () => {
     const message = encodeURIComponent(
-      "Assalamu’alaikum, saya ingin bertanya tentang program yang tersedia."
+      "Assalamu'alaikum, saya ingin bertanya tentang program yang tersedia."
     );
 
     window.open(
@@ -35,6 +35,23 @@ export default function HubungiKami() {
           </p>
         </div>
 
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 border rounded-lg p-4">
+            <p className="text-sm text-gray-500">Admin Tahfidz</p>
+            <p className="font-medium">+62 812-8340-4611</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Jam layanan: 08.00 - 20.00 WIB
+            </p>
+          </div>
+
+          <button
+            onClick={handleWhatsApp}
+            className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-lg font-medium transition"
+          >
+            <MessageCircle size={20} />
+            Chat via WhatsApp
+          </button>
+        </div>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 border rounded-lg p-4">
             <p className="text-sm text-gray-500">Admin Tahfidz</p>
