@@ -3,13 +3,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./Components/Navbar/Navbar";
 import Pengaturan from "./Components/Pengaturan/Pengaturan";
 import { useSettings } from "./context/settingsContext";
-import { AuthProvider } from "./context/authContext";
+import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./Components/Auth/ProtectedRoute";
 import Login from "./Components/Auth/Login";
 import MurajaahList from "./Components/Murajaah/MurajaahList";
 import GuruList from "./Components/Guru/GuruList";
 import DetailList from "./Components/Tahfidz/DetailList";
 import HubungiKami from "./pages/HubungiKami";
+import Campus from "./Components/Campus/Campus";
 
 const Hero = lazy(() => import("./Components/Hero/Hero"));
 const Programs = lazy(() => import("./Components/Programs/Programs"));
@@ -121,6 +122,8 @@ const App = () => {
                     <Title subTitle="Our PROGRAM" title="What We Offer" />
                     <Programs />
                     <About />
+                    <Title subTitle="Gallery" title="Campus Photos" />
+                    <Campus/>
                   </div>
                 </>
               }
