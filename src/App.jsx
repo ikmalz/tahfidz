@@ -12,7 +12,7 @@ import HubungiKami from "./pages/HubungiKami";
 import Campus from "./Components/Campus/Campus";
 import Testimonials from "./Components/Testimonials/Testimonials";
 import Footer from "./Components/Footer/Footer";
-import { AuthProvider } from "./context/authContext";
+import { AuthProvider } from "./context/AuthContext";
 
 const Hero = lazy(() => import("./Components/Hero/Hero"));
 const Programs = lazy(() => import("./Components/Programs/Programs"));
@@ -89,31 +89,9 @@ const App = () => {
               }
             />
 
-            <Route
-              path="/tahfidz/:id"
-              element={
-                <ProtectedRoute>
-                  <DetailList />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/tahfidz"
-              element={
-                <ProtectedRoute>
-                  <TahfidzList />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/hubungi-kami"
-              element={
-                <ProtectedRoute>
-                  <HubungiKami  />
-                </ProtectedRoute>
-              }
-            />
-
+            <Route path="/tahfidz/:id" element={<DetailList />} />
+            <Route path="/tahfidz" element={<TahfidzList />} />
+            <Route path="/hubungi-kami" element={<HubungiKami />} />
 
             <Route
               path="/"
@@ -125,10 +103,10 @@ const App = () => {
                     <Programs />
                     <About />
                     <Title subTitle="Gallery" title="Campus Photos" />
-                    <Campus/>
+                    <Campus />
                     <Title subTitle="TESTIMONIALS" title="What Student Days" />
-                    <Testimonials/>
-                    <Footer/>
+                    <Testimonials />
+                    <Footer />
                   </div>
                 </>
               }

@@ -324,7 +324,7 @@ export default function HafalanList() {
                 : "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500"
             } rounded-lg shadow-lg p-4 flex items-center justify-between gap-3 min-w-[300px] max-w-md border border-gray-200 dark:border-gray-700`}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 z-50">
               <span className="text-lg">
                 {notification.type === "success"
                   ? "✅"

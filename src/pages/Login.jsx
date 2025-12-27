@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/authContext';
 import { supabase } from '../supabaseClient';
 
 export default function Login() {

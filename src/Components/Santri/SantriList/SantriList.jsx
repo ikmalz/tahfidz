@@ -230,7 +230,6 @@ export default function SantriList() {
   const exportToPDFSimple = () => {
     setExporting(true);
     try {
-      // Gunakan data yang sudah ada di state untuk menghindari API call
       const dataToExport = filtered.length > 0 ? filtered : santri;
 
       if (!dataToExport || dataToExport.length === 0) {
@@ -291,7 +290,6 @@ export default function SantriList() {
 
   const exportToJSON = async () => {
     try {
-      // Gunakan data yang sudah ada untuk menghindari API call berlebihan
       const dataToExport =
         santri.length > 0 ? santri : await fetchDataForExport();
 

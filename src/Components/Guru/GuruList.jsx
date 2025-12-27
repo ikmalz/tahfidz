@@ -17,7 +17,7 @@ export default function GuruList() {
   const loadGuru = async () => {
     const { data, error } = await supabase
       .from("guru")
-      .select("id, nama")
+      .select("*")
       .order("nama", { ascending: true });
 
     if (!error) setGuru(data);

@@ -7,23 +7,36 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Cek session awal
   useEffect(() => {
-    async function loadSession() {
-      const { data } = await supabase.auth.getSession();
-      setUser(data?.session?.user ?? null);
-      setLoading(false);
-    }
-    loadSession();
+    let mounted = true;
 
-    // Listener untuk login/logout otomatis
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    const initAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
 
-    return () => subscription.unsubscribe();
+        if (!mounted) return;
+
+        setUser(data?.session?.user ?? null);
+      } catch (err) {
+        console.error("Auth error:", err);
+      } finally {
+        if (mounted) setLoading(false); // 🔥 PASTI MATI
+      }
+    };
+
+    initAuth();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false); // 🔥 JANGAN LUPA
+      }
+    );
+
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   return (

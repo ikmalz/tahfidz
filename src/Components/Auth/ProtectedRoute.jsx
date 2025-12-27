@@ -1,12 +1,25 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-export default function ProtectedRoute({ children }) {
+const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return <p>Memeriksa sesi...</p>;
+  // ⏳ TUNGGU SESSION SELESAI
+  if (loading) {
+    return (
+      <div style={{ padding: 20, textAlign: "center", opacity: 0.7 }}>
+        Mengecek sesi...
+      </div>
+    );
+  }
 
-  if (!user) return <Navigate to="/login" />;
+  // ❌ BELUM LOGIN
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
+  // ✅ SUDAH LOGIN
   return children;
-}
+};
+
+export default ProtectedRoute;
