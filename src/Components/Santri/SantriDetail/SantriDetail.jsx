@@ -7,7 +7,6 @@ export default function SantriDetail({ santri, close, theme = "light" }) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("info");
 
-  // Fetch hafalan santri
   useEffect(() => {
     const loadHafalan = async () => {
       if (!santri?.id) return;
@@ -33,7 +32,6 @@ export default function SantriDetail({ santri, close, theme = "light" }) {
     loadHafalan();
   }, [santri]);
 
-  // Format tanggal
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
@@ -44,7 +42,6 @@ export default function SantriDetail({ santri, close, theme = "light" }) {
     });
   };
 
-  // Format tanggal pendek
   const formatShortDate = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
@@ -55,7 +52,6 @@ export default function SantriDetail({ santri, close, theme = "light" }) {
     });
   };
 
-  // Hitung statistik hafalan
   const hafalanStats = {
     total: hafalan.length,
     lastUpdate: hafalan.length > 0 ? hafalan[0].tanggal : null,
