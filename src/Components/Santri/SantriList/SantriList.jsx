@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "../../../supabaseClient";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable"; // Import yang lebih baik
+import autoTable from "jspdf-autotable";
 import {
   FiUsers,
   FiSearch,
-  FiFilter,
   FiEdit2,
   FiTrash2,
   FiEye,
@@ -13,7 +12,7 @@ import {
   FiDownload,
   FiX,
   FiCheck,
-  FiUserPlus,
+  FiCalendar,
 } from "react-icons/fi";
 import { MdDateRange } from "react-icons/md";
 
@@ -26,19 +25,13 @@ import SantriDetail from "../SantriDetail/SantriDetail";
 import DashboardLayout from "../../Dashboard/DashboardLayout";
 import { useSettings } from "../../../context/settingsContext";
 
-// Tambahkan font untuk mendukung karakter Indonesia
-const addFontToPDF = (doc) => {
-  // Font default jsPDF sudah mendukung basic characters
-  // Untuk font yang lebih baik, Anda bisa menambahkan font custom
-  return doc;
-};
-
 export default function SantriList() {
   const { settings } = useSettings();
   const [santri, setSantri] = useState([]);
   const [nama, setNama] = useState("");
   const [editId, setEditId] = useState(null);
   const [editNama, setEditNama] = useState("");
+  const [editJoinDate, setEditJoinDate] = useState("");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,6 +41,7 @@ export default function SantriList() {
   const [exporting, setExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [isEditingJoinDate, setIsEditingJoinDate] = useState(null);
 
   const perPage = settings?.tahfidz?.itemsPerPage || 10;
 
@@ -109,24 +103,67 @@ export default function SantriList() {
   };
 
   const saveEdit = async () => {
-    if (!editNama.trim()) return;
+    if (!editNama.trim()) {
+      alert("Nama tidak boleh kosong");
+      return;
+    }
 
     try {
+      const updateData = {
+        nama: editNama,
+      };
+
+      if (editJoinDate) {
+        updateData.created_at = new Date(editJoinDate).toISOString();
+      }
+
       const { error } = await supabase
         .from("santri")
-        .update({ nama: editNama })
+        .update(updateData)
         .eq("id", editId);
 
       if (!error) {
         setEditId(null);
         setEditNama("");
+        setEditJoinDate("");
         loadSantri();
+        alert("Data santri berhasil diperbarui!");
       } else {
         alert("Gagal menyimpan perubahan.");
       }
     } catch (err) {
       console.error("Error updating santri:", err);
       alert("Terjadi kesalahan saat menyimpan perubahan.");
+    }
+  };
+
+  // Fungsi untuk menyimpan edit tanggal bergabung
+  const saveJoinDateEdit = async (id, newDate) => {
+    if (!newDate) {
+      alert("Tanggal tidak boleh kosong");
+      return;
+    }
+
+    try {
+      // Konversi tanggal ke format ISO string
+      const isoDate = new Date(newDate).toISOString();
+
+      const { error } = await supabase
+        .from("santri")
+        .update({ created_at: isoDate })
+        .eq("id", id);
+
+      if (!error) {
+        setIsEditingJoinDate(null);
+        setEditJoinDate("");
+        loadSantri();
+        alert("Tanggal bergabung berhasil diperbarui");
+      } else {
+        alert("Gagal memperbarui tanggal bergabung.");
+      }
+    } catch (err) {
+      console.error("Error updating join date:", err);
+      alert("Terjadi kesalahan saat memperbarui tanggal bergabung.");
     }
   };
 
@@ -227,67 +264,6 @@ export default function SantriList() {
     }
   };
 
-  const exportToPDFSimple = () => {
-    setExporting(true);
-    try {
-      const dataToExport = filtered.length > 0 ? filtered : santri;
-
-      if (!dataToExport || dataToExport.length === 0) {
-        alert("Tidak ada data santri untuk diexport.");
-        setExporting(false);
-        return;
-      }
-
-      const doc = new jsPDF();
-
-      // Judul
-      doc.setFontSize(16);
-      doc.text("DATA SANTRI TAHFIDZ", 105, 20, { align: "center" });
-
-      // Tanggal
-      doc.setFontSize(10);
-      doc.text(`Dicetak: ${new Date().toLocaleDateString("id-ID")}`, 105, 30, {
-        align: "center",
-      });
-      doc.text(`Total: ${dataToExport.length} santri`, 105, 35, {
-        align: "center",
-      });
-
-      // Header tabel
-      const headers = [["No", "Nama", "Kelas", "Bergabung"]];
-
-      // Data tabel
-      const tableData = dataToExport.map((santri, index) => [
-        index + 1,
-        santri.nama,
-        santri.kelas || "-",
-        new Date(santri.created_at).toLocaleDateString("id-ID"),
-      ]);
-
-      // Buat tabel
-      doc.autoTable({
-        startY: 45,
-        head: headers,
-        body: tableData,
-        theme: "grid",
-        headStyles: {
-          fillColor: [8, 51, 88],
-          textColor: [255, 255, 255],
-        },
-        margin: { top: 45 },
-      });
-
-      // Simpan
-      doc.save(`santri-${new Date().getTime()}.pdf`);
-      alert(`Data ${dataToExport.length} santri berhasil diexport!`);
-    } catch (error) {
-      console.error("Export error:", error);
-      alert("Gagal export PDF. Silakan coba lagi.");
-    } finally {
-      setExporting(false);
-    }
-  };
-
   const exportToJSON = async () => {
     try {
       const dataToExport =
@@ -352,6 +328,12 @@ export default function SantriList() {
       month: "short",
       year: "numeric",
     });
+  };
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0];
   };
 
   const isDark = settings.display.theme === "dark";
@@ -609,8 +591,10 @@ export default function SantriList() {
                                 {s.kelas || "-"}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                              {formatDate(s.created_at)}
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {formatDate(s.created_at)}
+                              </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center gap-2">
@@ -623,11 +607,15 @@ export default function SantriList() {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    setEditId(s.id);
-                                    setEditNama(s.nama);
+                                    const santriData = s;
+                                    setEditId(santriData.id);
+                                    setEditNama(santriData.nama);
+                                    setEditJoinDate(
+                                      formatDateForInput(santriData.created_at)
+                                    );
                                   }}
-                                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors"
-                                  title="Edit"
+                                  className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                  title="Edit Data Santri (Nama & Tanggal)"
                                   disabled={isDeleting === s.id}
                                 >
                                   <FiEdit2 className="w-4 h-4" />
@@ -682,7 +670,8 @@ export default function SantriList() {
           </div>
         </div>
 
-        {/* Edit Modal - Modern */}
+        {/* Edit Modal - Nama */}
+        {/* Edit Modal - Lengkap (Nama + Tanggal Bergabung) */}
         {editId && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 opacity-100">
@@ -694,15 +683,19 @@ export default function SantriList() {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                        Edit Nama Santri
+                        Edit Data Santri
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Ubah nama santri dengan data baru
+                        Perbarui informasi santri
                       </p>
                     </div>
                   </div>
                   <button
-                    onClick={() => setEditId(null)}
+                    onClick={() => {
+                      setEditId(null);
+                      setEditNama("");
+                      setEditJoinDate("");
+                    }}
                     className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   >
                     <FiX className="w-5 h-5" />
@@ -711,39 +704,108 @@ export default function SantriList() {
               </div>
 
               <div className="p-6">
-                <div className="space-y-4">
+                <div className="space-y-5">
+                  {/* Field 1: Nama Santri */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Nama Baru
+                      <span className="text-red-500">*</span> Nama Santri
                     </label>
-                    <input
-                      type="text"
-                      value={editNama}
-                      onChange={(e) => setEditNama(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
-                      placeholder="Masukkan nama baru"
-                      autoFocus
-                      onKeyPress={(e) => e.key === "Enter" && saveEdit()}
-                    />
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiUsers className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="text"
+                        value={editNama}
+                        onChange={(e) => setEditNama(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                        placeholder="Masukkan nama santri"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  {/* Field 2: Tanggal Bergabung */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Tanggal Bergabung
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FiCalendar className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="date"
+                        value={
+                          editJoinDate ||
+                          formatDateForInput(
+                            santri.find((s) => s.id === editId)?.created_at ||
+                              ""
+                          )
+                        }
+                        onChange={(e) => setEditJoinDate(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      Kosongkan jika tidak ingin mengubah tanggal
+                    </p>
+                  </div>
+
+                  {/* Info: Data Saat Ini */}
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                      Data Saat Ini:
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Nama:
+                        </span>
+                        <span className="ml-2 font-medium text-gray-800 dark:text-white">
+                          {santri.find((s) => s.id === editId)?.nama || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          Bergabung:
+                        </span>
+                        <span className="ml-2 font-medium text-gray-800 dark:text-white">
+                          {formatDate(
+                            santri.find((s) => s.id === editId)?.created_at
+                          )}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 rounded-b-2xl">
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => setEditId(null)}
-                    className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    onClick={saveEdit}
-                    className="px-4 py-2.5 bg-blue-800 text-white rounded-lg hover:bg-blue-900 font-medium flex items-center gap-2 transition-colors"
-                  >
-                    <FiCheck className="w-4 h-4" />
-                    Simpan Perubahan
-                  </button>
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="text-red-500">*</span> Wajib diisi
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setEditId(null);
+                        setEditNama("");
+                        setEditJoinDate("");
+                      }}
+                      className="px-4 py-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      onClick={saveEdit}
+                      className="px-4 py-2.5 bg-blue-800 text-white rounded-lg hover:bg-blue-900 font-medium flex items-center gap-2 transition-colors shadow-md hover:shadow-lg"
+                    >
+                      <FiCheck className="w-4 h-4" />
+                      Simpan Perubahan
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
