@@ -97,15 +97,28 @@ const App = () => {
               path="/"
               element={
                 <>
-                  <Hero />
+                  <section id="hero">
+                    <Hero />
+                  </section>
+
                   <div className="container">
-                    <Title subTitle="Our PROGRAM" title="What We Offer" />
-                    <Programs />
-                    <About />
-                    <Title subTitle="Gallery" title="Campus Photos" />
-                    <Campus />
-                    <Title subTitle="TESTIMONIALS" title="What Student Days" />
-                    <Testimonials />
+                    <section id="program">
+                      <Title subTitle="Our PROGRAM" title="What We Offer" />
+                      <Programs />
+                    </section>
+
+                    <section id="about">
+                      <About />
+                    </section>
+
+                    <section id="campus">
+                      <Campus />
+                    </section>
+
+                    <section id="testimonials">
+                      <Testimonials />
+                    </section>
+
                     <Footer />
                   </div>
                 </>

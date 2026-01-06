@@ -271,3 +271,11 @@ body,
   background: #212EA0;
   color: #fff;
 }
+
+#hero,
+#program,
+#about,
+#campus,
+#testimonials {
+  scroll-margin-top: 70px;
+}

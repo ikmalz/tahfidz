@@ -1,114 +1,86 @@
-import React, { useRef } from "react";
-import "./Testimonials.css";
-import next_icon from "../../assets/next-icon.png";
-import back_icon from "../../assets/back-icon.png";
+import React from "react";
 import user_1 from "../../assets/user-1.png";
 import user_2 from "../../assets/user-2.png";
 import user_3 from "../../assets/user-3.png";
-import user_4 from "../../assets/user-4.png";
+
+const testimonials = [
+  {
+    name: "Ikmal Fairuz",
+    location: "Depok",
+    image: user_1,
+    message:
+      "Alhamdulillah, belajar mengaji di Daarul Qira’ah sangat nyaman. Ustadznya sabar dan metode belajarnya mudah dipahami, jadi makin semangat murojaah setiap hari.",
+  },
+  {
+    name: "Ahmad Fauzi",
+    location: "Bogor",
+    image: user_2,
+    message:
+      "Awalnya saya kesulitan mengatur hafalan, tapi setelah ikut Daarul Qira’ah, hafalan jadi lebih terarah dan terjaga. Lingkungannya juga sangat mendukung.",
+  },
+  {
+    name: "Siti Aisyah",
+    location: "Jakarta",
+    image: user_3,
+    message:
+      "Pengajian di Daarul Qira’ah terasa hangat dan kekeluargaan. Anak saya jadi lebih rajin mengaji dan percaya diri saat setor hafalan.",
+  },
+];
 
 const Testimonials = () => {
-  const slider = useRef();
-  let tx = 0;
-
-  const slideForward = () => {
-    if (tx > -50) {
-      tx -= 25;
-    }
-    slider.current.style.transform = `translateX(${tx}%)`;
-  };
-  const slideBackward = () => {
-    if (tx < 0) {
-      tx += 25;
-    }
-    slider.current.style.transform = `translateX(${tx}%)`;
-  };
-
   return (
-    <div className="testimonials">
-      <img
-        src={next_icon}
-        alt=""
-        className="next-btn "
-        onClick={slideForward}
-      />
-      <img
-        src={back_icon}
-        alt=""
-        className="back-btn "
-        onClick={slideBackward}
-      />
-      <div className="slider">
-        <ul ref={slider}>
-          <li>
-            <div className="slide">
-              <div className="user-info">
-                <img src={user_1} alt="" />
-                <div>
-                  <h3>Ikmal aja</h3>
-                  <span>Depok, IDN</span>
-                </div>
+    <div className="max-w-7xl mx-auto my-20 px-4">
+      {/* Heading */}
+      <div className="text-center mb-12">
+        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+          Apa Kata Santri & Wali Santri
+        </h2>
+        <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto">
+          Testimoni dari mereka yang telah merasakan langsung proses belajar dan
+          mengaji di Daarul Qira’ah
+        </p>
+      </div>
+
+      {/* Testimonial Cards */}
+      <div
+        className="
+          flex gap-6 overflow-x-auto pb-4
+          md:grid md:grid-cols-3 md:overflow-visible
+        "
+      >
+        {testimonials.map((item, index) => (
+          <div
+            key={index}
+            className="
+              min-w-[280px] md:min-w-0
+              bg-white rounded-xl shadow-md
+              p-6 transition-all duration-300
+              hover:shadow-lg hover:-translate-y-1
+            "
+          >
+            {/* User */}
+            <div className="flex items-center gap-4 mb-4">
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-14 h-14 rounded-full border-4 border-blue-900 object-cover"
+              />
+              <div>
+                <h3 className="font-semibold text-gray-900">
+                  {item.name}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {item.location}
+                </p>
               </div>
-              <p>
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                Officia earum nihil hic exercitationem quo totam. Ullam
-                provident harum fugit nostrum delectus deserunt et, quasi
-                molestiae placeat eveniet, officiis laboriosam ipsum.
-              </p>
             </div>
-          </li>
-          <li>
-            <div className="slide">
-              <div className="user-info">
-                <img src={user_2} alt="" />
-                <div>
-                  <h3>Ikmal aja</h3>
-                  <span>Depok, IDN</span>
-                </div>
-              </div>
-              <p>
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                Officia earum nihil hic exercitationem quo totam. Ullam
-                provident harum fugit nostrum delectus deserunt et, quasi
-                molestiae placeat eveniet, officiis laboriosam ipsum.
-              </p>
-            </div>
-          </li>
-          <li>
-            <div className="slide">
-              <div className="user-info">
-                <img src={user_3} alt="" />
-                <div>
-                  <h3>Ikmal aja</h3>
-                  <span>Depok, IDN</span>
-                </div>
-              </div>
-              <p>
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                Officia earum nihil hic exercitationem quo totam. Ullam
-                provident harum fugit nostrum delectus deserunt et, quasi
-                molestiae placeat eveniet, officiis laboriosam ipsum.
-              </p>
-            </div>
-          </li>
-          <li>
-            <div className="slide">
-              <div className="user-info">
-                <img src={user_4} alt="" />
-                <div>
-                  <h3>Ikmal aja</h3>
-                  <span>Depok, IDN</span>
-                </div>
-              </div>
-              <p>
-                Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                Officia earum nihil hic exercitationem quo totam. Ullam
-                provident harum fugit nostrum delectus deserunt et, quasi
-                molestiae placeat eveniet, officiis laboriosam ipsum.
-              </p>
-            </div>
-          </li>
-        </ul>
+
+            {/* Message */}
+            <p className="text-gray-600 text-sm leading-relaxed">
+              “{item.message}”
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );

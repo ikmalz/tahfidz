@@ -44,11 +44,31 @@ const Navbar = () => {
         <img src={logo} alt="Logo" className="logo" />
 
         <ul className="desktop-menu">
-          <li><Link to="hero" smooth={true} offset={0} duration={500}>Beranda</Link></li>
-          <li><Link to="program" smooth={true} offset={0} duration={500}>Program</Link></li>
-          <li><Link to="about" smooth={true} offset={0} duration={500}>Tentang Kami</Link></li>
-          <li><Link to="campus" smooth={true} offset={0} duration={500}>Galeri</Link></li>
-          <li><Link to="testimonials" smooth={true} offset={0} duration={500}>Testimoni</Link></li>
+          <li>
+            <Link to="hero" smooth duration={500} offset={-60}>
+              Beranda
+            </Link>
+          </li>
+          <li>
+            <Link to="program" smooth duration={500} offset={-60}>
+              Program
+            </Link>
+          </li>
+          <li>
+            <Link to="about" smooth duration={500} offset={-60}>
+              Tentang Kami
+            </Link>
+          </li>
+          <li>
+            <Link to="campus" smooth duration={500} offset={-60}>
+              Galeri
+            </Link>
+          </li>
+          <li>
+            <Link to="testimonials" smooth duration={500} offset={-60}>
+              Testimoni
+            </Link>
+          </li>
           <li>
             <a href="/hubungi-kami" className="btn">
               Hubungi Kami
@@ -91,30 +111,78 @@ const Navbar = () => {
       )}
 
       {isMobile && showMobileMenu && (
-        <div className="mobile-menu-dropdown">
-          <ul>
-            <li onClick={closeMobileMenu}>
-              <span>Beranda</span>
-            </li>
-            <li onClick={closeMobileMenu}>
-              <span>Program</span>
-            </li>
-            <li onClick={closeMobileMenu}>
-              <span>Tentang Kami</span>
-            </li>
-            <li onClick={closeMobileMenu}>
-              <span>Galeri</span>
-            </li>
-            <li onClick={closeMobileMenu}>
-              <span>Testimoni</span>
-            </li>
-            <li>
-              <a href="/hubungi-kami" onClick={closeMobileMenu} className="btn">
-                Hubungi Kami
-              </a>
-            </li>
-          </ul>
-        </div>
+        <>
+          <div className="mobile-menu-overlay" onClick={closeMobileMenu} />
+
+          <div className="mobile-menu-dropdown">
+            <ul>
+              <li>
+                <Link
+                  to="hero"
+                  smooth
+                  duration={500}
+                  offset={-70}
+                  onClick={closeMobileMenu}
+                >
+                  Beranda
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="program"
+                  smooth
+                  duration={500}
+                  offset={-70}
+                  onClick={closeMobileMenu}
+                >
+                  Program
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="about"
+                  smooth
+                  duration={500}
+                  offset={-70}
+                  onClick={closeMobileMenu}
+                >
+                  Tentang Kami
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="campus"
+                  smooth
+                  duration={500}
+                  offset={-70}
+                  onClick={closeMobileMenu}
+                >
+                  Galeri
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="testimonials"
+                  smooth
+                  duration={500}
+                  offset={-70}
+                  onClick={closeMobileMenu}
+                >
+                  Testimoni
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="/hubungi-kami"
+                  className="btn"
+                  onClick={closeMobileMenu}
+                >
+                  Hubungi Kami
+                </a>
+              </li>
+            </ul>
+          </div>
+        </>
       )}
     </nav>
   );

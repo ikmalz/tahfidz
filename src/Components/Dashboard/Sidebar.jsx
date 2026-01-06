@@ -85,17 +85,6 @@ export default function Sidebar({ isOpen, onClose }) {
           </Link>
 
           <Link
-            to="/jadwal"
-            onMouseEnter={() => preloadRoute("jadwal")}
-            onClick={handleLinkClick}
-            className={
-              isActive("/jadwal") ? "active sidebar-link" : "sidebar-link"
-            }
-          >
-            <li>Jadwal</li>
-          </Link>
-
-          <Link
             to="/guru"
             onMouseEnter={() => preloadRoute("guru")}
             onClick={handleLinkClick}
