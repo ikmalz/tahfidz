@@ -30,6 +30,12 @@ export default function TahfidzDetail() {
   const [bulan, setBulan] = useState("");
   const [surah, setSurah] = useState("");
 
+  const [loadingSantri, setLoadingSantri] = useState(true);
+  const [loadingData, setLoadingData] = useState(true);
+
+  const [debouncedSurah, setDebouncedSurah] = useState("");
+  const [showChart, setShowChart] = useState(false);
+
   useEffect(() => {
     loadSantri();
   }, []);
@@ -38,11 +44,9 @@ export default function TahfidzDetail() {
     setHafalanPage(1);
   }, [bulan, surah]);
 
-  useEffect(() => {
-    tab === "hafalan" ? loadHafalan() : loadMurajaah();
-  }, [tab, hafalanPage, murajaahPage]);
-
   const loadSantri = async () => {
+    setLoadingSantri(true);
+
     const { data } = await supabase
       .from("santri")
       .select("nama, kelas, tanggal_masuk")
@@ -50,10 +54,16 @@ export default function TahfidzDetail() {
       .single();
 
     setSantri(data);
+    setLoadingSantri(false);
   };
 
-  const [debouncedSurah, setDebouncedSurah] = useState("");
-  const [showChart, setShowChart] = useState(false);
+  useEffect(() => {
+    if (tab === "hafalan") {
+      loadHafalan();
+    } else {
+      loadMurajaah();
+    }
+  }, [tab, hafalanPage, murajaahPage, bulan, debouncedSurah]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -78,6 +88,8 @@ export default function TahfidzDetail() {
   ];
 
   const loadHafalan = async () => {
+    setLoadingData(true);
+
     let query = supabase
       .from("hafalan")
       .select("*", { count: "exact" })
@@ -90,8 +102,8 @@ export default function TahfidzDetail() {
         .lte("tanggal", `2025-${bulan}-31`);
     }
 
-    if (surah) {
-      query = query.ilike("surah", `%${surah}%`);
+    if (debouncedSurah) {
+      query = query.ilike("surah", `%${debouncedSurah}%`);
     }
 
     const { data, count } = await query.range(
@@ -101,6 +113,7 @@ export default function TahfidzDetail() {
 
     setHafalan(data || []);
     setHafalanTotal(count || 0);
+    setLoadingData(false);
   };
 
   const loadMurajaah = async () => {
@@ -146,6 +159,16 @@ export default function TahfidzDetail() {
     (best, curr) => (curr.ayat > best.ayat ? curr : best),
     grafik[0] || { ayat: 0 }
   );
+
+  if (loadingSantri) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8 animate-pulse space-y-4">
+        <div className="h-20 bg-gray-200 rounded-xl" />
+        <div className="h-40 bg-gray-200 rounded-xl" />
+        <div className="h-64 bg-gray-200 rounded-xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 space-y-4 md:space-y-6">
@@ -322,6 +345,7 @@ export default function TahfidzDetail() {
               ])}
               page={hafalanPage}
               total={hafalanTotal}
+              loading={loadingData}
               onPageChange={setHafalanPage}
             />
           )}
@@ -344,6 +368,7 @@ export default function TahfidzDetail() {
                 ])}
                 page={murajaahPage}
                 total={murajaahTotal}
+                loading={loadingData}
                 onPageChange={setMurajaahPage}
               />
             </div>
@@ -400,8 +425,28 @@ function TabButton({ active, onClick, label }) {
   );
 }
 
-function DataTable({ headers, rows, page, total, onPageChange }) {
-  const pages = Math.ceil(total / PAGE_SIZE);
+function TableSkeleton({ cols = 4, rows = 5 }) {
+  return (
+    <div className="space-y-2 animate-pulse">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="grid grid-cols-4 gap-3">
+          {Array.from({ length: cols }).map((_, j) => (
+            <div key={j} className="h-4 bg-gray-200 rounded" />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DataTable({ headers, rows, page, total, onPageChange, loading }) {
+  if (loading) {
+    return <TableSkeleton cols={headers.length} />;
+  }
+
+  const totalPages = Math.ceil(total / 10); 
+
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
     <div className="space-y-4">
