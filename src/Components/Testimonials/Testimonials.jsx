@@ -3,25 +3,33 @@ import user_1 from "../../assets/user-1.png";
 import user_2 from "../../assets/user-2.png";
 import user_3 from "../../assets/user-3.png";
 
+import { FaUserCircle } from "react-icons/fa";
+
+const avatarColors = [
+  "text-blue-600",
+  "text-green-600",
+  "text-purple-600",
+  "text-pink-600",
+  "text-orange-600",
+  "text-indigo-600",
+];
+
 const testimonials = [
   {
     name: "Ikmal Fairuz",
     location: "Depok",
-    image: user_1,
     message:
       "Alhamdulillah, belajar mengaji di Daarul Qira’ah sangat nyaman. Ustadznya sabar dan metode belajarnya mudah dipahami, jadi makin semangat murojaah setiap hari.",
   },
   {
     name: "Ahmad Fauzi",
     location: "Bogor",
-    image: user_2,
     message:
       "Awalnya saya kesulitan mengatur hafalan, tapi setelah ikut Daarul Qira’ah, hafalan jadi lebih terarah dan terjaga. Lingkungannya juga sangat mendukung.",
   },
   {
     name: "Siti Aisyah",
     location: "Jakarta",
-    image: user_3,
     message:
       "Pengajian di Daarul Qira’ah terasa hangat dan kekeluargaan. Anak saya jadi lebih rajin mengaji dan percaya diri saat setor hafalan.",
   },
@@ -60,18 +68,23 @@ const Testimonials = () => {
           >
             {/* User */}
             <div className="flex items-center gap-4 mb-4">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-14 h-14 rounded-full border-4 border-blue-900 object-cover"
-              />
+              <div
+                className={`
+                  w-14 h-14 rounded-full border-4 border-blue-900
+                  flex items-center justify-center bg-gray-100
+                `}
+              >
+                <FaUserCircle
+                  className={`
+      w-10 h-10 
+      ${avatarColors[index % avatarColors.length]}
+    `}
+                />
+              </div>
+
               <div>
-                <h3 className="font-semibold text-gray-900">
-                  {item.name}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {item.location}
-                </p>
+                <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                <p className="text-sm text-gray-500">{item.location}</p>
               </div>
             </div>
 
