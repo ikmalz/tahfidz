@@ -41,7 +41,9 @@ const Navbar = () => {
   return (
     <nav className={`nav-container ${sticky ? "dark-nav" : ""}`}>
       <div className="nav-content">
-        <img src={logo} alt="Logo" className="logo" />
+        <a href="/">
+          <img src={logo} alt="Logo" className="logo" />
+        </a>
 
         <ul className="desktop-menu">
           <li>
