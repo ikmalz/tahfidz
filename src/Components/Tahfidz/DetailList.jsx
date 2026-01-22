@@ -41,6 +41,14 @@ export default function TahfidzDetail() {
   }, []);
 
   useEffect(() => {
+    if (tab === "hafalan") {
+      setHafalanPage(1);
+    } else {
+      setMurajaahPage(1);
+    }
+  }, [tab, bulan, debouncedSurah]);
+
+  useEffect(() => {
     setHafalanPage(1);
   }, [bulan, surah]);
 
@@ -71,6 +79,11 @@ export default function TahfidzDetail() {
     }, 500);
     return () => clearTimeout(t);
   }, [surah]);
+
+  function normalize(text) {
+    if (!text) return "";
+    return text.toLowerCase().replace(/[^a-z]/g, "");
+  }
 
   const BULAN = [
     "01",
@@ -103,13 +116,20 @@ export default function TahfidzDetail() {
     }
 
     if (debouncedSurah) {
-      query = query.ilike("surah", `%${debouncedSurah}%`);
+      const raw = debouncedSurah.toLowerCase();
+      const clean = normalize(debouncedSurah);
+
+      query = query.or(`surah.ilike.%${raw}%,surah.ilike.%${clean}%`);
     }
 
-    const { data, count } = await query.range(
+    const { data, count, error } = await query.range(
       (hafalanPage - 1) * PAGE_SIZE,
-      hafalanPage * PAGE_SIZE - 1
+      hafalanPage * PAGE_SIZE - 1,
     );
+
+    if (error) {
+      console.error("ERROR HAFALAN SEARCH:", error);
+    }
 
     setHafalan(data || []);
     setHafalanTotal(count || 0);
@@ -117,15 +137,39 @@ export default function TahfidzDetail() {
   };
 
   const loadMurajaah = async () => {
-    const { data, count } = await supabase
+    setLoadingData(true);
+
+    let query = supabase
       .from("murajaah")
       .select("*, guru:guru_id(nama)", { count: "exact" })
       .eq("santri_id", id)
-      .order("tanggal", { ascending: false })
-      .range((murajaahPage - 1) * PAGE_SIZE, murajaahPage * PAGE_SIZE - 1);
+      .order("tanggal", { ascending: false });
+
+    if (bulan) {
+      query = query
+        .gte("tanggal", `2025-${bulan}-01`)
+        .lte("tanggal", `2025-${bulan}-31`);
+    }
+
+    if (debouncedSurah) {
+      const raw = debouncedSurah.toLowerCase();
+      const clean = normalize(debouncedSurah);
+
+      query = query.or(`surah.ilike.%${raw}%,surah.ilike.%${clean}%`);
+    }
+
+    const { data, count, error } = await query.range(
+      (murajaahPage - 1) * PAGE_SIZE,
+      murajaahPage * PAGE_SIZE - 1,
+    );
+
+    if (error) {
+      console.error("ERROR MURAJAAH SEARCH:", error);
+    }
 
     setMurajaah(data || []);
     setMurajaahTotal(count || 0);
+    setLoadingData(false);
   };
 
   const grafikData = hafalan.reduce((acc, h) => {
@@ -157,7 +201,7 @@ export default function TahfidzDetail() {
 
   const bulanTerbaik = grafik.reduce(
     (best, curr) => (curr.ayat > best.ayat ? curr : best),
-    grafik[0] || { ayat: 0 }
+    grafik[0] || { ayat: 0 },
   );
 
   if (loadingSantri) {
@@ -444,7 +488,7 @@ function DataTable({ headers, rows, page, total, onPageChange, loading }) {
     return <TableSkeleton cols={headers.length} />;
   }
 
-  const totalPages = Math.ceil(total / 10); 
+  const totalPages = Math.ceil(total / 10);
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 

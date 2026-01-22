@@ -13,13 +13,16 @@ import Campus from "./Components/Campus/Campus";
 import Testimonials from "./Components/Testimonials/Testimonials";
 import Footer from "./Components/Footer/Footer";
 import { AuthProvider } from "./context/AuthContext";
+import WelcomePopup from "./Components/WelcomePopup/WelcomePopup";
+import FloatingOrnaments from "./Components/WelcomePopup/FloatingOrnaments";
+import IslamicToast from "./Components/WelcomePopup/IslamicToast";
 
 const Hero = lazy(() => import("./Components/Hero/Hero"));
 const Programs = lazy(() => import("./Components/Programs/Programs"));
 const Title = lazy(() => import("./Components/Title/Title"));
 const About = lazy(() => import("./Components/About/About"));
-const SantriList = lazy(() =>
-  import("./Components/Santri/SantriList/SantriList")
+const SantriList = lazy(
+  () => import("./Components/Santri/SantriList/SantriList"),
 );
 const TahfidzList = lazy(() => import("./Components/Tahfidz/TahfidzList"));
 const HafalanList = lazy(() => import("./Components/Hafalan/HafalanList"));
@@ -47,6 +50,10 @@ const App = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <WelcomePopup />
+        <FloatingOrnaments />
+        <IslamicToast />
+
         {window.location.pathname !== "/login" && <Navbar />}
 
         <Suspense fallback={<FastLoader />}>
@@ -103,7 +110,10 @@ const App = () => {
 
                   <div className="container">
                     <section id="program">
-                      <Title subTitle="Program kami" title="Berikut terdapat dokumentasi dan program" />
+                      <Title
+                        subTitle="Program kami"
+                        title="Berikut terdapat dokumentasi dan program"
+                      />
                       <Programs />
                     </section>
 

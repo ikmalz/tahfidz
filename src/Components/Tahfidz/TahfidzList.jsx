@@ -3,7 +3,6 @@ import { supabase } from "../../supabaseClient";
 import DashboardLayout from "../Dashboard/DashboardLayout";
 import { useNavigate } from "react-router-dom";
 
-const PAGE_SIZE = 10;
 
 const TableSkeletonRow = () => (
   <tr className="animate-pulse">
@@ -29,11 +28,11 @@ const TableSkeletonRow = () => (
 
 export default function TahfidzList() {
   const navigate = useNavigate();
-
+  
   const [santri, setSantri] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Data hafalan & murajaah untuk semua santri
+  const [pageSize, setPageSize] = useState(10);
+  
   const [santriHafalan, setSantriHafalan] = useState({});
   const [santriMurajaah, setSantriMurajaah] = useState({});
   const [todayDate, setTodayDate] = useState("");
@@ -64,7 +63,7 @@ export default function TahfidzList() {
       .from("santri")
       .select("id, nama, kelas", { count: "exact" })
       .order("nama", { ascending: true })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      .range((page - 1) * pageSize, page * pageSize - 1);
 
     if (search) {
       query = query.ilike("nama", `%${search}%`);
@@ -162,7 +161,7 @@ export default function TahfidzList() {
     });
   };
 
-  const totalPage = Math.ceil(total / PAGE_SIZE);
+  const totalPage = Math.ceil(total / pageSize);
 
   return (
     <div className="p-6">
@@ -202,16 +201,43 @@ export default function TahfidzList() {
           className="px-4 py-2 border rounded-md w-full md:w-1/5"
         >
           <option value="">Semua Kelas</option>
-          <option value="pagi">Pagi</option>
+          <option value="pagi">Pagi</option> 
+          <option value="siang">Siang</option> 
           <option value="sore">Sore</option>
+          <option value="malam">Malam</option>
         </select>
       </div>
 
-      {/* TABLE SANTRI DENGAN HAFALAN & MURAJAAH */}
-      <div className="overflow-x-auto bg-white border rounded-lg shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-3 gap-2 text-sm text-gray-600">
+        <div>
+          Menampilkan <b>{(page - 1) * pageSize + 1}</b> –{" "}
+          <b>{Math.min(page * pageSize, total)}</b> dari <b>{total}</b> santri
+        </div>
+
+        {/* PAGE SIZE SELECT */}
+        <div className="flex items-center gap-2">
+          <span>Tampilkan</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPage(1);
+              setPageSize(Number(e.target.value));
+            }}
+            className="border rounded px-2 py-1 text-sm"
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+          <span>baris</span>
+        </div>
+      </div>
+
+      <div className="max-h-[70vh] overflow-auto bg-white border rounded-lg shadow-sm">
         <table className="min-w-full text-sm">
-          <thead className="bg-blue-900 text-white">
+          <thead className="bg-blue-900 text-white sticky top-0 z-10">
             <tr>
+              <th className="px-3 py-3 text-center w-12">No</th>
               <th className="px-4 py-3 text-left">Nama</th>
               <th className="px-4 py-3 text-left">Kelas</th>
               <th className="px-4 py-3 text-left">Hafalan Terbaru</th>
@@ -221,11 +247,11 @@ export default function TahfidzList() {
           </thead>
 
           <tbody>
-            {/* SKELETON LOADING */}
+            {/* SKELETON LOADING
             {loading &&
               Array.from({ length: PAGE_SIZE }).map((_, index) => (
                 <TableSkeletonRow key={index} />
-              ))}
+              ))} */}
 
             {/* DATA KOSONG */}
             {!loading && santri.length === 0 && (
@@ -245,8 +271,14 @@ export default function TahfidzList() {
                 return (
                   <tr
                     key={s.id}
-                    className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                    className={`transition hover:bg-blue-50 ${
+                      idx % 2 === 0 ? "bg-gray-50" : "bg-white"
+                    }`}
                   >
+                    <td className="px-3 py-3 text-center text-gray-500">
+                      {(page - 1) * pageSize + idx + 1}
+                    </td>
+
                     <td className="px-4 py-3 font-medium">{s.nama}</td>
                     <td className="px-4 py-3 capitalize">{s.kelas}</td>
 
@@ -262,8 +294,8 @@ export default function TahfidzList() {
                                 latestHafalan.status === "hafal"
                                   ? "bg-green-100 text-green-800"
                                   : latestHafalan.status === "setor"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-yellow-100 text-yellow-800"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-yellow-100 text-yellow-800"
                               }`}
                             >
                               {latestHafalan.status || "Pending"}
@@ -318,26 +350,45 @@ export default function TahfidzList() {
 
       {/* PAGINATION */}
       {totalPage > 1 && (
-        <div className="flex justify-between items-center mt-4">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(page - 1)}
-            className="px-4 py-2 border rounded disabled:opacity-50"
-          >
-            ◀ Prev
-          </button>
-
+        <div className="flex flex-col md:flex-row justify-between items-center mt-4 gap-3">
+          {/* INFO */}
           <span className="text-sm text-gray-600">
-            Halaman {page} dari {totalPage}
+            Halaman <b>{page}</b> dari <b>{totalPage}</b>
           </span>
 
-          <button
-            disabled={page === totalPage}
-            onClick={() => setPage(page + 1)}
-            className="px-4 py-2 border rounded disabled:opacity-50"
-          >
-            Next ▶
-          </button>
+          {/* NAVIGATION */}
+          <div className="flex items-center gap-2">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+              className="px-3 py-2 border rounded disabled:opacity-50"
+            >
+              ◀
+            </button>
+
+            {/* JUMP PAGE */}
+            <input
+              type="number"
+              min="1"
+              max={totalPage}
+              value={page}
+              onChange={(e) => {
+                let val = Number(e.target.value);
+                if (val >= 1 && val <= totalPage) {
+                  setPage(val);
+                }
+              }}
+              className="w-16 text-center border rounded py-1"
+            />
+
+            <button
+              disabled={page === totalPage}
+              onClick={() => setPage(page + 1)}
+              className="px-3 py-2 border rounded disabled:opacity-50"
+            >
+              ▶
+            </button>
+          </div>
         </div>
       )}
     </div>
