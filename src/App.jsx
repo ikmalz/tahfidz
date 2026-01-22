@@ -103,7 +103,7 @@ const App = () => {
 
                   <div className="container">
                     <section id="program">
-                      <Title subTitle="Our PROGRAM" title="What We Offer" />
+                      <Title subTitle="Program kami" title="Berikut terdapat dokumentasi dan program" />
                       <Programs />
                     </section>
 
