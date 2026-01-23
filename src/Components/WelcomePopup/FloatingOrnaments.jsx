@@ -4,6 +4,8 @@ import { BookOpen, User, Calendar, Star } from "lucide-react";
 export default function FloatingOrnaments() {
   const [scrollY, setScrollY] = useState(0);
   const [textIndex, setTextIndex] = useState(0);
+  const [showMobileBar, setShowMobileBar] = useState(false);
+  const [manualClose, setManualClose] = useState(false);
 
   const texts = [
     {
@@ -28,6 +30,20 @@ export default function FloatingOrnaments() {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!manualClose) {
+        setShowMobileBar(true);
+
+        setTimeout(() => {
+          setShowMobileBar(false);
+        }, 6000);
+      }
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, [manualClose]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -120,36 +136,80 @@ export default function FloatingOrnaments() {
         </div>
       </div>
 
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 xl:hidden w-[95%] max-w-md">
-        <div className="bg-blue-700/95 backdrop-blur-md rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-4 animate-slideUpSoft">
-          {/* ICON */}
-          <div className="bg-white/20 p-2 rounded-full">
-            {textIndex === 0 && <BookOpen size={20} className="text-white" />}
-            {textIndex === 1 && <User size={20} className="text-white" />}
-            {textIndex === 2 && <Star size={20} className="text-white" />}
-          </div>
+      {showMobileBar && (
+        <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 xl:hidden w-[95%] max-w-md animate-mobileEnter">
+          <div className="relative bg-blue-700/95 backdrop-blur-md rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-4">
+            {/* CLOSE BUTTON */}
+            <button
+              onClick={() => {
+                setShowMobileBar(false);
+                setManualClose(true);
 
-          {/* TEXT */}
-          <div className="flex-1">
-            <p className="text-xs text-blue-200">{texts[textIndex].title}</p>
-            <p className="text-sm font-medium text-white leading-relaxed animate-textFade">
-              {texts[textIndex].text}
-            </p>
-            <p className="text-[10px] text-blue-200 mt-0.5">
-              {texts[textIndex].ref}
-            </p>
-          </div>
+                // Boleh muncul lagi setelah 1 menit
+                setTimeout(() => setManualClose(false), 60000);
+              }}
+              className="absolute -top-2 -right-2 bg-white text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs shadow hover:scale-110 transition"
+            >
+              ✕
+            </button>
 
-          {/* STATUS DOT */}
-          <div className="flex items-center gap-1">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-            <span className="text-[10px] text-white">Live</span>
+            {/* ICON */}
+            <div className="bg-white/20 p-2 rounded-full animate-pulse">
+              {textIndex === 0 && <BookOpen size={20} className="text-white" />}
+              {textIndex === 1 && <User size={20} className="text-white" />}
+              {textIndex === 2 && <Star size={20} className="text-white" />}
+            </div>
+
+            {/* TEXT — TIDAK DIPOTONG */}
+            <div className="flex-1">
+              <p className="text-xs text-blue-200">{texts[textIndex].title}</p>
+              <p className="text-sm font-medium text-white leading-relaxed animate-textFade">
+                {texts[textIndex].text}
+              </p>
+              <p className="text-[10px] text-blue-200 mt-0.5">
+                {texts[textIndex].ref}
+              </p>
+            </div>
+
+            {/* STATUS */}
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+              <span className="text-[10px] text-white">Live</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* CSS */}
       <style jsx>{`
+        /* MOBILE ENTER */
+        @keyframes mobileEnter {
+          from {
+            opacity: 0;
+            transform: translate(-50%, 60px);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+        }
+
+        /* MOBILE EXIT */
+        @keyframes mobileExit {
+          from {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+          to {
+            opacity: 0;
+            transform: translate(-50%, -40px);
+          }
+        }
+
+        .animate-mobileEnter {
+          animation: mobileEnter 0.8s ease-out;
+        }
+
         /* FLOAT SOFT */
         @keyframes floatSoft {
           0% {
