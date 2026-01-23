@@ -50,10 +50,6 @@ const App = () => {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <WelcomePopup />
-        <FloatingOrnaments />
-        <IslamicToast />
-
         {window.location.pathname !== "/login" && <Navbar />}
 
         <Suspense fallback={<FastLoader />}>
@@ -104,6 +100,9 @@ const App = () => {
               path="/"
               element={
                 <>
+                  <WelcomePopup />
+                  <FloatingOrnaments />
+                  <IslamicToast />
                   <section id="hero">
                     <Hero />
                   </section>
